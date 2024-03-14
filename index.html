@@ -52,28 +52,38 @@
         </header>
     </div>
 
-    <div class="container h-75 d-flex flex-column justify-content-center">
-        <div id="landing-wrapper" style="display: none;">
+    <div class="container h-75 ">
+        <div  id="landing-wrapper" style="height: 100%;display: none;">
+        <div class="d-flex flex-column justify-content-center h-100">
             <div class="d-flex flex-row justify-content-center align-items-center">
-                <img class="img-fluid rounded-circle m-3" style="max-width: 250px; border-radius:50%;border:solid var(--logo-color) 2px;padding:10px;" src="test_img.jpg" alt="">
+                <img class="img-fluid rounded-circle m-3" style="max-width: 250px; border-radius:50%;border:solid var(--logo-color) 2px;padding:10px;" src="static/donut.jpg" alt="">
                 <div>
                     <h1 class="display-5"><strong>Hi, I'm
-                        <inline class="low-highlight">Ben Pearson</inline>.
+                        <inline class="">Ben Pearson</inline>.
                     </strong></h1>
                     <p class="lead"><strong>I'm a
-                        <inline class="low-highlight">software developer.</inline>
+                        <inline class="">software developer.</inline>
                     </strong></p>
-                    <p class="lead"><strong>Read <a class="low-highlight" href="#" onclick="showExperienceDiv()">about me</a>, or feel free to get in <a class="low-highlight" href="#" onclick="showExperienceDiv()">contact.</a>
-                    </strong></p>
+                    <p class="lead">
+<!--                        <strong>-->
+                        Read <a href="#" onclick="showExperienceDiv()">about me</a>, or feel free to get in <a href="#" onclick="showExperienceDiv()">contact</a>.
+<!--                    </strong>-->
+                    </p>
                     <!--                    <p class="lead">-->
                     <!--                        <a href="#" class="btn btn-outline-dark">About me</a>-->
                     <!--                    </p>-->
                 </div>
             </div>
         </div>
+        </div>
 
-        <div id="experience-wrapper" style="display:none;">
-            <div class="container w-50">
+<!--        <div id="experience-wrapper" style="display:none;">-->
+            <div id="experience-wrapper" class="container w-75 pt-5" style="display:none;">
+                <div class="d-flex flex-row justify-content-center align-items-center">
+                <img class="img-fluid rounded-circle m-3" style="max-width: 250px; border-radius:50%;border:solid var(--logo-color) 2px;padding:10px;" src="static/outdoor_2.jpg" alt="">
+<!--                <img class="img-fluid rounded-circle m-3" style="max-width: 250px; border-radius:50%;border:solid var(&#45;&#45;logo-color) 2px;padding:10px;" src="test_img2.jpg" alt="">-->
+                    <div>
+                <h1 class="display-5"><strong>About Me</strong></h1>
                 <p>I was most recently a <strong>Senior Data Engineer</strong> at <a href="https://www.anuvu.com/" target="_blank" style="font-weight:bold">Anuvu</a>,
                     where I developed a media metatdata ingestion API, improved performance for various systems, created intricate data models,
                     contributed to an extensive ETL pipeline, mentored several entry-level engineers, and more.
@@ -87,15 +97,18 @@
                     In college, I worked as a SQL Programmer at University of Iowa's Energy Control Center,
                     as well as a Student GPS Technician for Facilities Management.
                 </p>
+                    </div>
+                </div>
             </div>
 
-        <div id="contact-wrapper" style="display:none;">
-            <div class="d-flex flex-row justify-content-center align-items-center">
+<!--        </div>-->
+
+        <div id="contact-wrapper" class="container w-50 pt-5" style="display:none;">
+            <h1 class="display-5"><strong>Contact Me</strong></h1>
                 <ul>
-                    <li>Email: <a href="mailto:m.benpearson@gmail.com" target="_blank">m.benpearson@gmail.com</a></li>
-                    <li>LinkedIn: <a href="https://www.linkedin.com/in/mbenpearson/" target="_blank">mbenpearson</a></li>
+                    <li class="lead" >Email: <a href="mailto:m.benpearson@gmail.com" target="_blank">m.benpearson@gmail.com</a></li>
+                    <li class="lead">LinkedIn: <a href="https://www.linkedin.com/in/mbenpearson/" target="_blank">mbenpearson</a></li>
                 </ul>
-            </div>
         </div>
     </div>
 

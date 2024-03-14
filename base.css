@@ -20,7 +20,11 @@ html {
     --pre-background-color: #282a36
 }
 a {
-    color: var(--link-color);
+   /* color: var(--link-color); */
+   background:linear-gradient(180deg, transparent 60%, var(--highlight-color) 60%);
+   color: var(--bs-body-color);
+   font-weight: bolder;
+   text-decoration: none;
 
 }
 .name-highlight {
