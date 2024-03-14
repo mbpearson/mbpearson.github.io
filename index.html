@@ -34,12 +34,12 @@
 
             <ul class="nav ">
                 <li class="nav-item">
-                    <a href="#" onclick="showLandingDiv()" class="nav-link link-secondary" aria-current="page">Home</a>
+                    <a id="nav_home" href="#" onclick="showLandingDiv()" class="nav-link link-secondary border-bottom" aria-current="page">Home</a>
                 </li>
-                <li class="nav-item"><a href="#" onclick="showExperienceDiv()" class="nav-link link-body-emphasis">Experience</a>
+                <li class="nav-item"><a id="nav_about" href="#" onclick="showExperienceDiv()" class="nav-link link-body-emphasis">Experience</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" onclick="showContactDiv()" class="nav-link link-body-emphasis">Contact</a></li>
+                    <a id="nav_contact" href="#" onclick="showContactDiv()" class="nav-link link-body-emphasis">Contact</a></li>
 <!--                <li class="nav-item dropdown">-->
 <!--                    <a class="nav-link link-body-emphasis dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Projects</a>-->
 <!--                    <ul class="dropdown-menu">-->
@@ -132,9 +132,12 @@
 <script>
 
 function showLandingDiv(initial=false) {
-    console.log(initial)
+
+    $("#nav_about").removeClass("border-bottom")
+    $("#nav_contact").removeClass("border-bottom")
+    $("#nav_home").addClass("border-bottom")
+
     var fadeSpeed = (initial === true) ? 2000 : "fast";
-    console.log("showLandingDiv(\"" + fadeSpeed + "\")")
     $("#experience-wrapper").hide()
     $("#contact-wrapper").hide()
 
@@ -142,6 +145,9 @@ function showLandingDiv(initial=false) {
 }
 
 function showExperienceDiv() {
+    $("#nav_home").removeClass("border-bottom")
+    $("#nav_contact").removeClass("border-bottom")
+    $("#nav_about").addClass("border-bottom")
 
     $("#landing-wrapper").hide()
     $("#contact-wrapper").hide()
@@ -149,6 +155,10 @@ function showExperienceDiv() {
 }
 
 function showContactDiv() {
+    $("#nav_home").removeClass("border-bottom")
+    $("#nav_about").removeClass("border-bottom")
+    $("#nav_contact").addClass("border-bottom")
+
 
     $("#landing-wrapper").hide()
     $("#experience-wrapper").hide()
