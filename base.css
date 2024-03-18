@@ -43,3 +43,7 @@ mark {
 .low-highlight {
   background:linear-gradient(180deg, transparent 60%, var(--highlight-color) 60%);
 }
+
+.dropdown-item:hover {
+text-decoration: underline;
+}
