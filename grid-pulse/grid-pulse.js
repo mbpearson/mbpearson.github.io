@@ -339,13 +339,13 @@ function renderDemandChart(snapshot) {
     const options = baseChartOptions(`Actual and forecast demand for ${snapshot.region.id} over ${rangeLabel()}. Select legend items to toggle series and drag horizontally to zoom.`);
     options.xAxis.min = dataStart;
     options.xAxis.max = xEnd;
-    options.xAxis.plotLines = now >= dataStart && now <= xEnd ? [{
-        color: theme.accent,
-        label: {align: "right", rotation: 0, style: {color: theme.accent, fontSize: "11px", fontWeight: "700"}, text: "Now", y: 12},
-        value: now,
-        width: 2,
-        zIndex: 5,
-    }] : [];
+    // options.xAxis.plotLines = now >= dataStart && now <= xEnd ? [{
+    //     color: theme.accent,
+    //     // label: {align: "right", rotation: 0, style: {color: theme.accent, fontSize: "11px", fontWeight: "700"}, text: "Now", y: 12},
+    //     value: now,
+    //     width: 1,
+    //     zIndex: 5,
+    // }] : [];
     options.tooltip.formatter = function () {
         const points = this.points || [];
         const values = points.map((point) => `<div class="chart-tooltip-row"><span><i style="background:${point.color}"></i>${point.series.name}</span><strong>${formatInteger(point.y)} MWh</strong></div>`).join("");
