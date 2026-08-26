@@ -1,18 +1,87 @@
-name: GitHub Actions Demo
-run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+name: Build and deploy Grid Pulse
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
 jobs:
-  Explore-GitHub-Actions:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-      - name: Check out repository code
-        uses: actions/checkout@v4
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-      - name: List files in the repository
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Run pipeline tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Fetch EIA data
+        env:
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
         run: |
-          ls ${{ github.workspace }}
-      - run: echo "🍏 This job's status is ${{ job.status }}."
+          python -m pipeline.eia_client \
+            --hours 744 \
+            --output-dir grid-pulse/data/source
+
+      - name: Validate and build dashboard data
+        run: |
+          python -m pipeline.build \
+            --source-dir grid-pulse/data/source \
+            --output-dir grid-pulse/data
+
+      - name: Assemble static site
+        run: |
+          mkdir _site
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.idea/' \
+            --exclude='.venv/' \
+            --exclude='_site/' \
+            --exclude='pipeline/' \
+            --exclude='tests/' \
+            --exclude='gridpulse_examples/' \
+            --exclude='grid-pulse/data/source/' \
+            --exclude='grid-pulse/data/sample/' \
+            --exclude='eia_api_key' \
+            ./ _site/
+          touch _site/.nojekyll
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

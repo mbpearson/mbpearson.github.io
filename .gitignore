@@ -1,0 +1,9 @@
+.env
+.idea/
+.venv/
+__pycache__/
+*.py[cod]
+eia_api_key
+grid-pulse/data/manifest.json
+grid-pulse/data/regions/*.json
+grid-pulse/data/source/
