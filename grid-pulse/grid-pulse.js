@@ -14,6 +14,11 @@ const FUEL_COLOR_VARIABLES = {
     wind: "--fuel-wind",
     other: "--fuel-other",
 };
+const REGION_DESCRIPTIONS = {
+    miso: "MISO (Midcontinent Independent System Operator) operates the central U.S. grid across parts of 15 states and Manitoba, Canada.",
+    pjm: "PJM (Pennsylvania–New Jersey–Maryland Interconnection) coordinates the grid across all or parts of 13 states and Washington, D.C., from Illinois to the Mid-Atlantic.",
+    caiso: "CAISO (California Independent System Operator) manages the grid serving about 80% of California and a small portion of Nevada.",
+};
 
 /**
  * @typedef {{timestamp: string, actual_mwh: number|null, forecast_mwh: number|null, net_generation_mwh: number|null, net_interchange_mwh: number|null}} DemandRow
@@ -46,6 +51,7 @@ const elements = {
     pipelinePill: document.querySelector("#pipeline-pill"),
     pipelineLabel: document.querySelector("#pipeline-label"),
     insight: document.querySelector("#grid-insight"),
+    regionDescription: document.querySelector("#region-description"),
     demandValue: document.querySelector("#demand-value"),
     demandNote: document.querySelector("#demand-note"),
     forecastValue: document.querySelector("#forecast-value"),
@@ -467,6 +473,8 @@ function updateKpis(snapshot) {
 }
 
 function updateLabels(snapshot) {
+    elements.regionDescription.textContent = REGION_DESCRIPTIONS[snapshot.region.slug]
+        || `${snapshot.region.id} is the selected grid region.`;
     elements.demandSubtitle.textContent = `${snapshot.region.name} · ${rangeLabel()} · hourly MWh`;
     elements.demandCaption.textContent = `Actual demand and day-ahead forecast. Times are displayed in ${Intl.DateTimeFormat().resolvedOptions().timeZone}.`;
     elements.mixSubtitle.textContent = `${snapshot.region.name} · ${rangeLabel()} · positive reported generation`;

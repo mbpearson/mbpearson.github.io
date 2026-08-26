@@ -282,6 +282,15 @@ a:focus-visible {
     font-size: clamp(1rem, 2vw, 1.2rem);
 }
 
+.region-description {
+    max-width: 720px;
+    margin: 0.75rem 0 0;
+    padding-left: calc(1rem + 3px);
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
 .dashboard-controls {
     display: flex;
     align-items: flex-end;
