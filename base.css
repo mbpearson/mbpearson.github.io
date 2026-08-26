@@ -4,6 +4,11 @@ html {
     background: var(--background-color);
     scroll-behavior: smooth;
 }
+
+body {
+    background: var(--background-color);
+}
+
 :root {
     --text-color: #000;
     --inverted-text-color: #fff;
@@ -27,6 +32,59 @@ a {
    text-decoration: none;
 
 }
+
+.navbar a,
+footer a {
+    background: none;
+}
+
+.navbar .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.section-panel {
+    width: 100%;
+}
+
+.landing-panel {
+    min-height: 55vh;
+}
+
+.content-section {
+    max-width: 960px;
+    margin-inline: auto;
+}
+
+.contact-section {
+    max-width: 650px;
+    margin-inline: auto;
+}
+
+.profile-image {
+    flex: 0 0 auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 2px solid var(--logo-color);
+    padding: 10px;
+}
+
+.profile-image-hero {
+    width: min(60vw, 250px);
+}
+
+.profile-image-about {
+    width: min(55vw, 225px);
+}
+
+h1 {
+    font-size: clamp(2rem, 7vw, 3rem);
+}
+
+.contact-list a {
+    overflow-wrap: anywhere;
+}
 .name-highlight {
     background-color: #06687bd1;
     color: white;
@@ -45,5 +103,25 @@ mark {
 }
 
 .dropdown-item:hover {
-text-decoration: underline;
+    text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+    .navbar-collapse {
+        padding-top: 0.75rem;
+    }
+
+    .dropdown-menu {
+        max-width: calc(100vw - 2rem);
+    }
+
+    footer {
+        margin-top: 1rem !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
 }

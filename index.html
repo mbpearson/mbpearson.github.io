@@ -15,58 +15,61 @@
 
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-<script src="js/home.js"></script>
-
-
-<div class="container vh-100">
-    <div class="container">
-        <header class="d-flex flex-wrap justify-content-end py-3 mb-4">
-            <ul class="nav">
+<div class="container min-vh-100 d-flex flex-column px-3">
+    <header class="py-3 mb-2 mb-md-4">
+        <nav class="navbar navbar-expand-md p-0" aria-label="Primary navigation">
+            <div class="container-fluid justify-content-end px-0">
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primary-navigation"
+                        aria-controls="primary-navigation" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="primary-navigation">
+            <ul class="navbar-nav align-items-stretch align-items-md-center">
                 <li class="nav-item">
-                    <a id="nav_home" href="#" onclick="showLandingDiv()" class="nav-link link-body-emphasis border-bottom" aria-current="page">Home</a>
+                    <a id="nav_home" href="#home" data-section-link="home" class="nav-link link-body-emphasis border-bottom" aria-current="page">Home</a>
                 </li>
-                <li class="nav-item"><a id="nav_about" href="#" onclick="showExperienceDiv()" class="nav-link link-body-emphasis">Experience</a>
+                <li class="nav-item"><a id="nav_about" href="#experience" data-section-link="experience" class="nav-link link-body-emphasis">Experience</a>
                 </li>
                 <li class="nav-item">
-                    <a id="nav_contact" href="#" onclick="showContactDiv()" class="nav-link link-body-emphasis">Contact</a></li>
+                    <a id="nav_contact" href="#contact" data-section-link="contact" class="nav-link link-body-emphasis">Contact</a></li>
                 <li class="nav-item dropdown">
                     <a class="nav-link link-body-emphasis dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">Projects</a>
-                    <ul class="dropdown-menu">
+                    <ul class="dropdown-menu dropdown-menu-md-end">
                         <li><a class="dropdown-item" style="background: none;" target="_blank" href="static/DowsingCanePosterRF.pdf">Dowsing cane <i class="fa fa-external-link ps-1" style="font-size: .75rem;" aria-hidden="true"></i></a></li>
                         <li><a class="dropdown-item" style="background: none;" target="_blank" href="https://devpost.com/software/electric-sheep">Electric Sheep <i class="fa fa-external-link ps-1" style="font-size: .75rem;" aria-hidden="true"></i></a></li>
                         <li><a class="dropdown-item" style="background: none;" target="_blank" href="https://devpost.com/software/beatenoid">Beatenoid <i class="fa fa-external-link ps-1" style="font-size: .75rem;" aria-hidden="true"></i></a></li>
                     </ul>
                 </li>
             </ul>
-        </header>
-    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
 
-    <div class="container h-75 ">
-        <div  id="landing-wrapper" style="height: 100%;display: none;">
-        <div class="d-flex flex-column justify-content-center h-100">
-            <div class="d-flex flex-row justify-content-center align-items-center">
-                <img class="img-fluid rounded-circle m-3" style="max-width: 250px; border-radius:50%;border:solid var(--logo-color) 2px;padding:10px;" src="static/donut.jpg" alt="">
-                <div>
-                    <h1 class="display-5"><strong>Hi, I'm
-                        <inline class="">Ben Pearson</inline>.
+    <main class="flex-grow-1 d-flex">
+        <div id="landing-wrapper" class="section-panel landing-panel align-self-stretch">
+        <div class="d-flex flex-column justify-content-center h-100 py-4 py-md-5">
+            <div class="d-flex flex-column flex-md-row justify-content-center align-items-center text-center text-md-start">
+                <img class="profile-image profile-image-hero rounded-circle m-2 m-md-3" src="static/donut.jpg" width="250" height="250" alt="Ben Pearson framed by a donut-shaped float">
+                <div class="hero-copy">
+                    <h1><strong>Hi, I'm
+                        <span>Ben Pearson</span>.
                     </strong></h1>
                     <p class="lead"><strong>I'm a
-                        <inline class="">software developer.</inline>
+                        <span>software developer.</span>
                     </strong></p>
-                    <p class="lead">Read <a href="#" onclick="showExperienceDiv()">about me</a>, or feel free to get in <a href="#" onclick="showContactDiv()">contact</a>.
+                    <p class="lead">Read <a href="#experience" data-section-link="experience">about me</a>, or feel free to get in <a href="#contact" data-section-link="contact">contact</a>.
                     </p>
                 </div>
             </div>
         </div>
         </div>
 
-        <div id="experience-wrapper" class="container w-75 pt-4" style="display:none;">
-            <h1 class="display-5 border-bottom"><strong>About Me</strong></h1>
-            <div class="d-flex flex-row justify-content-center align-items-start pt-2">
-                <img class="img-fluid rounded-circle m-3" style="max-width: 225px; border-radius:50%;border:solid var(--logo-color) 2px;padding:10px;" src="static/outdoor_2.jpg" alt="">
-                <div class="px-5">
+        <div id="experience-wrapper" class="section-panel content-section pt-3 pt-md-4" hidden>
+            <h1 class="border-bottom"><strong>About Me</strong></h1>
+            <div class="d-flex flex-column flex-lg-row justify-content-center align-items-center align-items-lg-start pt-2">
+                <img class="profile-image profile-image-about rounded-circle m-2 m-md-3" src="static/outdoor_2.jpg" width="225" height="225" loading="lazy" alt="Ben Pearson outdoors near a waterfall">
+                <div class="px-0 px-md-4 px-lg-5">
                     <p>I'm currently a <strong>Data Engineer Contractor</strong> at
                         <a href="https://www.anuvu.com/" target="_blank" style="font-weight:bold">Anuvu</a>, where I previously
                         worked as a <strong>Senior Data Engineer</strong>.
@@ -109,30 +112,32 @@
             </div>
         </div>
 
-        <div id="contact-wrapper" class="container w-50 pt-5" style="display:none;">
-            <h1 class="display-5"><strong>Contact Me</strong></h1>
-            <ul>
+        <div id="contact-wrapper" class="section-panel contact-section pt-4 pt-md-5" hidden>
+            <h1><strong>Contact Me</strong></h1>
+            <ul class="contact-list ps-4">
                 <li class="lead" >Email: <a href="mailto:m.benpearson@gmail.com" target="_blank">m.benpearson@gmail.com</a></li>
                 <li class="lead">LinkedIn: <a href="https://www.linkedin.com/in/mbenpearson/" target="_blank">mbenpearson</a></li>
             </ul>
         </div>
-    </div>
+    </main>
 
     <footer class="py-3 my-4">
         <ul class="nav justify-content-center pb-3 mb-3">
             <li class="nav-item">
-                <a href="https://www.linkedin.com/in/mbenpearson/" target="_blank" class="nav-link px-2 text-body-secondary"><i class="fa fa-2x fa-linkedin-square" style="color: #0077B5" aria-hidden="true"></i></a>
+                <a href="https://www.linkedin.com/in/mbenpearson/" target="_blank" class="nav-link px-2 text-body-secondary" aria-label="Ben Pearson on LinkedIn"><i class="fa fa-2x fa-linkedin-square" style="color: #0077B5" aria-hidden="true"></i></a>
             </li>
             <li class="nav-item">
-                <a href="https://github.com/mbpearson" target="_blank" class="nav-link px-2 text-body-secondary"><i class="fa fa-2x fa-github" aria-hidden="true"></i></a>
+                <a href="https://github.com/mbpearson" target="_blank" class="nav-link px-2 text-body-secondary" aria-label="Ben Pearson on GitHub"><i class="fa fa-2x fa-github" aria-hidden="true"></i></a>
             </li>
             <li class="nav-item">
-                <a href="mailto:m.benpearson@gmail.com" target="_blank" class="nav-link px-2 text-body-secondary"><i class="fa fa-2x fa-envelope-o" aria-hidden="true"></i></a>
+                <a href="mailto:m.benpearson@gmail.com" class="nav-link px-2 text-body-secondary" aria-label="Email Ben Pearson"><i class="fa fa-2x fa-envelope-o" aria-hidden="true"></i></a>
             </li>
         </ul>
     </footer>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="js/home.js"></script>
 </body>
 </html>
