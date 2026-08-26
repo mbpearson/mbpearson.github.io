@@ -149,11 +149,7 @@
                     <h2 id="demand-title">Demand vs. forecast</h2>
                     <p id="demand-subtitle" class="card-subtitle">Hourly observations</p>
                 </div>
-                <div class="chart-legend" aria-label="Demand chart legend">
-                    <span><i class="legend-line actual"></i>Actual</span>
-                    <span><i class="legend-line forecast"></i>Forecast</span>
-                    <span><i class="legend-line now"></i>Now</span>
-                </div>
+                <p class="chart-interaction-hint">Toggle series in the legend <span aria-hidden="true">·</span> Drag to zoom</p>
             </div>
             <figure>
                 <div id="demand-chart" class="chart-surface line-chart" aria-live="polite"></div>
@@ -172,8 +168,7 @@
             </div>
             <figure>
                 <div id="mix-chart" class="chart-surface mix-chart" aria-live="polite"></div>
-                <div id="mix-legend" class="fuel-legend" aria-label="Generation mix legend"></div>
-                <figcaption>Negative adjustments remain in the source data but are excluded from the stacked-area visualization.</figcaption>
+                <figcaption>Toggle fuels in the legend and drag to zoom. Percentages in the tooltip reflect visible generation; negative source adjustments are excluded.</figcaption>
             </figure>
         </section>
 
@@ -233,6 +228,8 @@
     </footer>
 
     <noscript><p class="noscript-message">Grid Pulse requires JavaScript to render its static data snapshots.</p></noscript>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@13.0.1/highcharts.js" integrity="sha384-5h49ghr7/kJSrZtU7RhWy8e9xVh0xmCde2W4RoAx4Mhf33bV3STID90ov9fUQEw4" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@13.0.1/modules/accessibility.js" integrity="sha384-Yg3wKqzJFJK0LOTuYVFjyueJcJyUoAPJKIRTXRNpdgwR3pcULpmkzd2eQ7zI3LuR" crossorigin="anonymous" defer></script>
     <script src="grid-pulse.js" defer></script>
 </body>
 </html>

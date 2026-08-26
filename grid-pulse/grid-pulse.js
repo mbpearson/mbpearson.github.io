@@ -1,18 +1,18 @@
 "use strict";
 
 const DATA_ROOT = "data";
-const SVG_NS = "http://www.w3.org/2000/svg";
-const FUEL_COLORS = {
-    battery: "var(--fuel-battery)",
-    coal: "var(--fuel-coal)",
-    geothermal: "var(--fuel-geothermal)",
-    hydro: "var(--fuel-hydro)",
-    natural_gas: "var(--fuel-natural-gas)",
-    nuclear: "var(--fuel-nuclear)",
-    petroleum: "var(--fuel-petroleum)",
-    solar: "var(--fuel-solar)",
-    wind: "var(--fuel-wind)",
-    other: "var(--fuel-other)",
+const chartLibrary = globalThis["Highcharts"];
+const FUEL_COLOR_VARIABLES = {
+    battery: "--fuel-battery",
+    coal: "--fuel-coal",
+    geothermal: "--fuel-geothermal",
+    hydro: "--fuel-hydro",
+    natural_gas: "--fuel-natural-gas",
+    nuclear: "--fuel-nuclear",
+    petroleum: "--fuel-petroleum",
+    solar: "--fuel-solar",
+    wind: "--fuel-wind",
+    other: "--fuel-other",
 };
 
 /**
@@ -26,12 +26,14 @@ const FUEL_COLORS = {
  * @typedef {{generated_at: string, regions: ManifestRegion[], pipeline: {status: string, rows_processed: {total: number}, quality_checks: {passed: number, warning: number, failed: number, total: number}}}} GridManifest
  */
 
-/** @type {{manifest: GridManifest|null, region: string, hours: number, snapshots: Map<string, GridSnapshot>}} */
+/** @type {{manifest: GridManifest|null, region: string, hours: number, snapshots: Map<string, GridSnapshot>, charts: {demand: Object|null, mix: Object|null}, visibility: {demand: Map<string, boolean>, mix: Map<string, boolean>}}} */
 const state = {
     manifest: null,
     region: "miso",
     hours: 168,
     snapshots: new Map(),
+    charts: {demand: null, mix: null},
+    visibility: {demand: new Map(), mix: new Map()},
 };
 
 const elements = {
@@ -58,7 +60,6 @@ const elements = {
     mixSubtitle: document.querySelector("#mix-subtitle"),
     mixTotal: document.querySelector("#mix-total"),
     mixChart: document.querySelector("#mix-chart"),
-    mixLegend: document.querySelector("#mix-legend"),
     freshnessValue: document.querySelector("#freshness-value"),
     rowsValue: document.querySelector("#rows-value"),
     checksValue: document.querySelector("#checks-value"),
@@ -89,6 +90,11 @@ function applyTheme(theme, persist = false) {
         } catch (error) {
             // The selected theme still applies when storage is unavailable.
         }
+    }
+    const snapshot = state.snapshots.get(state.region);
+    if (snapshot) {
+        renderDemandChart(snapshot);
+        renderMixChart(snapshot);
     }
 }
 
@@ -196,253 +202,216 @@ function filterWindow(rows) {
     return rows.filter((row) => new Date(row.timestamp).getTime() >= cutoff);
 }
 
-function svgElement(name, attributes = {}) {
-    const element = document.createElementNS(SVG_NS, name);
-    Object.entries(attributes).forEach(([key, value]) => element.setAttribute(key, String(value)));
-    return element;
+function cssValue(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
-function addSvgText(svg, text, x, y, className, anchor = "start") {
-    const node = svgElement("text", {x, y, class: className, "text-anchor": anchor});
-    node.textContent = text;
-    svg.appendChild(node);
-    return node;
+function chartTheme() {
+    return {
+        accent: cssValue("--accent"),
+        background: cssValue("--surface-solid"),
+        border: cssValue("--border-strong"),
+        blue: cssValue("--blue"),
+        cyan: cssValue("--cyan"),
+        grid: cssValue("--chart-grid"),
+        text: cssValue("--text"),
+        textSoft: cssValue("--text-soft"),
+        textFaint: cssValue("--text-faint"),
+    };
 }
 
-function buildPath(rows, field, xScale, yScale) {
-    let path = "";
-    let drawing = false;
-    rows.forEach((row) => {
-        const value = row[field];
-        if (!Number.isFinite(value)) {
-            drawing = false;
-            return;
-        }
-        const x = xScale(new Date(row.timestamp).getTime());
-        const y = yScale(value);
-        path += `${drawing ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`;
-        drawing = true;
-    });
-    return path;
+function fuelColor(fuelId) {
+    return cssValue(FUEL_COLOR_VARIABLES[fuelId] || FUEL_COLOR_VARIABLES.other);
 }
 
-function niceMaximum(value) {
-    if (!Number.isFinite(value) || value <= 0) {
-        return 1;
+function destroyChart(chartName, container) {
+    if (state.charts[chartName]) {
+        state.charts[chartName].destroy();
+        state.charts[chartName] = null;
     }
-    const magnitude = 10 ** Math.floor(Math.log10(value));
-    const normalized = value / magnitude;
-    const nice = normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-    return nice * magnitude;
+    container.replaceChildren();
 }
 
-function drawAxes(svg, bounds, yMin, yMax, xStart, xEnd) {
-    const yTicks = 5;
-    for (let index = 0; index <= yTicks; index += 1) {
-        const ratio = index / yTicks;
-        const y = bounds.bottom - ratio * (bounds.bottom - bounds.top);
-        const value = yMin + ratio * (yMax - yMin);
-        svg.appendChild(svgElement("line", {
-            x1: bounds.left,
-            x2: bounds.right,
-            y1: y,
-            y2: y,
-            class: "chart-grid-line",
-        }));
-        addSvgText(svg, formatCompact(value), bounds.left - 12, y + 4, "chart-axis-text", "end");
-    }
-
-    const xTicks = 6;
-    for (let index = 0; index <= xTicks; index += 1) {
-        const ratio = index / xTicks;
-        const x = bounds.left + ratio * (bounds.right - bounds.left);
-        const timestamp = xStart + ratio * (xEnd - xStart);
-        const label = new Intl.DateTimeFormat(undefined, {
-            month: state.hours > 24 ? "short" : undefined,
-            day: state.hours > 24 ? "numeric" : undefined,
-            hour: state.hours <= 24 ? "numeric" : undefined,
-        }).format(new Date(timestamp));
-        const anchor = index === 0 ? "start" : index === xTicks ? "end" : "middle";
-        addSvgText(svg, label, x, bounds.bottom + 25, "chart-axis-text", anchor);
-    }
+function seriesVisibility(chartName, seriesId) {
+    const visibility = state.visibility[chartName];
+    return {
+        visible: visibility.has(seriesId) ? visibility.get(seriesId) : true,
+        events: {
+            hide() { visibility.set(seriesId, false); },
+            show() { visibility.set(seriesId, true); },
+        },
+    };
 }
 
-function attachLineTooltip(container, svg, rows, bounds, xStart, xEnd, xScale, yScale, yMin, yMax) {
-    const tooltip = document.createElement("div");
-    tooltip.className = "chart-tooltip";
-    tooltip.hidden = true;
-    container.appendChild(tooltip);
-    const crosshair = svgElement("line", {
-        y1: bounds.top,
-        y2: bounds.bottom,
-        class: "chart-crosshair",
-        visibility: "hidden",
-    });
-    svg.appendChild(crosshair);
-
-    function hideTooltip() {
-        tooltip.hidden = true;
-        crosshair.setAttribute("visibility", "hidden");
-    }
-
-    svg.addEventListener("pointerleave", hideTooltip);
-    svg.addEventListener("pointermove", (event) => {
-        const rectangle = svg.getBoundingClientRect();
-        const viewX = (event.clientX - rectangle.left) / rectangle.width * 1200;
-        if (viewX < bounds.left || viewX > bounds.right) {
-            hideTooltip();
-            return;
-        }
-        const hoveredTime = xStart + (viewX - bounds.left) / (bounds.right - bounds.left) * (xEnd - xStart);
-        const nearest = rows.reduce((best, row) => (
-            Math.abs(new Date(row.timestamp).getTime() - hoveredTime) < Math.abs(new Date(best.timestamp).getTime() - hoveredTime)
-                ? row
-                : best
-        ));
-        const x = xScale(new Date(nearest.timestamp).getTime());
-        crosshair.setAttribute("x1", x);
-        crosshair.setAttribute("x2", x);
-        crosshair.setAttribute("visibility", "visible");
-
-        tooltip.replaceChildren();
-        const heading = document.createElement("strong");
-        heading.textContent = formatTimestamp(nearest.timestamp);
-        const actual = document.createElement("span");
-        actual.textContent = `Actual: ${formatInteger(nearest.actual_mwh)} MWh`;
-        const forecast = document.createElement("span");
-        forecast.textContent = `Forecast: ${formatInteger(nearest.forecast_mwh)} MWh`;
-        tooltip.append(heading, actual, forecast);
-        tooltip.hidden = false;
-        tooltip.style.left = `${x / 1200 * 100}%`;
-        const tooltipValue = Number.isFinite(nearest.actual_mwh)
-            ? nearest.actual_mwh
-            : Number.isFinite(nearest.forecast_mwh) ? nearest.forecast_mwh : (yMin + yMax) / 2;
-        tooltip.style.top = `${yScale(tooltipValue) / 360 * 100}%`;
-    });
+function baseChartOptions(description) {
+    const theme = chartTheme();
+    return {
+        chart: {
+            animation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            backgroundColor: "transparent",
+            reflow: true,
+            spacing: [8, 8, 8, 8],
+            style: {fontFamily: getComputedStyle(document.body).fontFamily},
+            zooming: {
+                mouseWheel: {enabled: false},
+                type: "x",
+                resetButton: {
+                    position: {align: "right", x: -8, y: 8},
+                    theme: {
+                        fill: theme.background,
+                        stroke: theme.border,
+                        r: 6,
+                        style: {color: theme.text, fontWeight: "600"},
+                        states: {hover: {fill: cssValue("--surface-muted")}},
+                    },
+                },
+            },
+        },
+        accessibility: {description},
+        credits: {enabled: false},
+        title: {text: null},
+        legend: {
+            align: "center",
+            itemDistance: 20,
+            itemHiddenStyle: {color: theme.textFaint},
+            itemHoverStyle: {color: theme.accent},
+            itemStyle: {color: theme.textSoft, cursor: "pointer", fontSize: "12px", fontWeight: "600"},
+            symbolRadius: 3,
+            verticalAlign: "bottom",
+        },
+        xAxis: {
+            crosshair: {color: theme.border, dashStyle: "ShortDash", width: 1},
+            gridLineWidth: 0,
+            labels: {style: {color: theme.textFaint, fontSize: "11px"}},
+            lineColor: theme.border,
+            tickColor: theme.border,
+            type: "datetime",
+        },
+        yAxis: {
+            endOnTick: false,
+            gridLineColor: theme.grid,
+            gridLineDashStyle: "ShortDash",
+            labels: {
+                formatter() { return formatCompact(this.value); },
+                style: {color: theme.textFaint, fontSize: "11px"},
+            },
+            min: 0,
+            startOnTick: false,
+            title: {text: "MWh", style: {color: theme.textFaint, fontSize: "11px"}},
+        },
+        tooltip: {
+            animation: false,
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+            borderRadius: 10,
+            outside: true,
+            padding: 10,
+            shadow: true,
+            shared: true,
+            style: {color: theme.text, fontSize: "12px"},
+            useHTML: true,
+        },
+        plotOptions: {
+            series: {
+                animation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+                connectNulls: false,
+                marker: {enabled: false},
+                states: {inactive: {opacity: 0.35}},
+            },
+        },
+    };
 }
 
 function renderDemandChart(snapshot) {
     const rows = filterWindow(snapshot.demand);
-    elements.demandChart.replaceChildren();
+    destroyChart("demand", elements.demandChart);
     if (!rows.length) {
         elements.demandChart.innerHTML = '<div class="chart-empty">No demand observations are available.</div>';
         return;
     }
 
-    const width = 1200;
-    const height = 360;
-    const bounds = {left: 72, right: 1175, top: 24, bottom: 315};
     const timestamps = rows.map((row) => new Date(row.timestamp).getTime());
-    const values = rows.flatMap((row) => [row.actual_mwh, row.forecast_mwh]).filter(Number.isFinite);
     const dataStart = Math.min(...timestamps);
     const latest = Math.max(...timestamps);
     const now = Date.now();
     const xEnd = Math.max(latest, now);
-    const xStart = dataStart;
-    const rawMin = Math.min(...values);
-    const rawMax = Math.max(...values);
-    const yPadding = Math.max((rawMax - rawMin) * 0.12, rawMax * 0.04, 1);
-    const yMin = Math.max(0, rawMin - yPadding);
-    const yMax = rawMax + yPadding;
-    const xScale = (value) => bounds.left + (value - xStart) / Math.max(xEnd - xStart, 1) * (bounds.right - bounds.left);
-    const yScale = (value) => bounds.bottom - (value - yMin) / Math.max(yMax - yMin, 1) * (bounds.bottom - bounds.top);
-
-    const svg = svgElement("svg", {
-        viewBox: `0 0 ${width} ${height}`,
-        role: "img",
-        "aria-label": `Actual and forecast demand for ${snapshot.region.id} over ${rangeLabel()}`,
-    });
-    drawAxes(svg, bounds, yMin, yMax, xStart, xEnd);
-    svg.appendChild(svgElement("path", {
-        d: buildPath(rows, "forecast_mwh", xScale, yScale),
-        class: "demand-forecast-path",
-    }));
-    svg.appendChild(svgElement("path", {
-        d: buildPath(rows, "actual_mwh", xScale, yScale),
-        class: "demand-actual-path",
-    }));
-
-    const nowX = xScale(now);
-    if (nowX >= bounds.left && nowX <= bounds.right) {
-        svg.appendChild(svgElement("line", {
-            x1: nowX,
-            x2: nowX,
-            y1: bounds.top + 12,
-            y2: bounds.bottom,
-            class: "now-line",
-        }));
-        svg.appendChild(svgElement("circle", {cx: nowX, cy: bounds.top + 12, r: 4, class: "now-dot"}));
-        const anchor = nowX > bounds.right - 50 ? "end" : "middle";
-        addSvgText(svg, "Now", Math.min(nowX, bounds.right - 4), bounds.top + 2, "now-label", anchor);
-    }
-
-    elements.demandChart.appendChild(svg);
-    attachLineTooltip(elements.demandChart, svg, rows, bounds, xStart, xEnd, xScale, yScale, yMin, yMax);
+    const theme = chartTheme();
+    const options = baseChartOptions(`Actual and forecast demand for ${snapshot.region.id} over ${rangeLabel()}. Select legend items to toggle series and drag horizontally to zoom.`);
+    options.xAxis.min = dataStart;
+    options.xAxis.max = xEnd;
+    options.xAxis.plotLines = now >= dataStart && now <= xEnd ? [{
+        color: theme.accent,
+        label: {align: "right", rotation: 0, style: {color: theme.accent, fontSize: "11px", fontWeight: "700"}, text: "Now", y: 12},
+        value: now,
+        width: 2,
+        zIndex: 5,
+    }] : [];
+    options.tooltip.formatter = function () {
+        const points = this.points || [];
+        const values = points.map((point) => `<div class="chart-tooltip-row"><span><i style="background:${point.color}"></i>${point.series.name}</span><strong>${formatInteger(point.y)} MWh</strong></div>`).join("");
+        return `<div class="chart-tooltip-content"><strong class="chart-tooltip-heading">${formatTimestamp(this.x)}</strong>${values}</div>`;
+    };
+    options.series = [
+        {
+            ...seriesVisibility("demand", "actual"),
+            color: theme.blue,
+            data: rows.map((row) => [new Date(row.timestamp).getTime(), row.actual_mwh]),
+            id: "actual",
+            lineWidth: 2.5,
+            name: "Actual",
+            type: "line",
+        },
+        {
+            ...seriesVisibility("demand", "forecast"),
+            color: theme.cyan,
+            dashStyle: "Dash",
+            data: rows.map((row) => [new Date(row.timestamp).getTime(), row.forecast_mwh]),
+            id: "forecast",
+            lineWidth: 2,
+            name: "Forecast",
+            type: "line",
+        },
+    ];
+    state.charts.demand = chartLibrary.chart(elements.demandChart, options);
 }
 
 function renderMixChart(snapshot) {
     const rows = filterWindow(snapshot.generation_mix);
-    elements.mixChart.replaceChildren();
-    elements.mixLegend.replaceChildren();
+    destroyChart("mix", elements.mixChart);
     if (!rows.length || !snapshot.fuel_catalog.length) {
         elements.mixChart.innerHTML = '<div class="chart-empty">No generation-mix observations are available.</div>';
         return;
     }
 
     const catalog = snapshot.fuel_catalog.filter((fuel) => rows.some((row) => Number(row.fuels[fuel.id]) > 0));
-    const width = 1200;
-    const height = 390;
-    const bounds = {left: 72, right: 1175, top: 20, bottom: 340};
-    const timestamps = rows.map((row) => new Date(row.timestamp).getTime());
-    const totals = rows.map((row) => catalog.reduce((sum, fuel) => sum + Math.max(Number(row.fuels[fuel.id]) || 0, 0), 0));
-    const xStart = Math.min(...timestamps);
-    const xEnd = Math.max(...timestamps);
-    const yMax = niceMaximum(Math.max(...totals));
-    const xScale = (value) => bounds.left + (value - xStart) / Math.max(xEnd - xStart, 1) * (bounds.right - bounds.left);
-    const yScale = (value) => bounds.bottom - value / yMax * (bounds.bottom - bounds.top);
-    const svg = svgElement("svg", {
-        viewBox: `0 0 ${width} ${height}`,
-        role: "img",
-        "aria-label": `Stacked generation mix for ${snapshot.region.id} over ${rangeLabel()}`,
-    });
-    drawAxes(svg, bounds, 0, yMax, xStart, xEnd);
-
-    const cumulative = rows.map(() => 0);
-    catalog.forEach((fuel) => {
-        const bottoms = [...cumulative];
-        const tops = rows.map((row, index) => {
-            cumulative[index] += Math.max(Number(row.fuels[fuel.id]) || 0, 0);
-            return cumulative[index];
-        });
-        const topPath = rows.map((row, index) => `${index ? "L" : "M"}${xScale(timestamps[index]).toFixed(2)},${yScale(tops[index]).toFixed(2)}`).join("");
-        const bottomPath = rows.map((row, index) => ({index, timestamp: timestamps[index]})).reverse()
-            .map(({index, timestamp}) => `L${xScale(timestamp).toFixed(2)},${yScale(bottoms[index]).toFixed(2)}`).join("");
-        svg.appendChild(svgElement("path", {
-            d: `${topPath}${bottomPath}Z`,
-            class: "mix-area",
-            fill: FUEL_COLORS[fuel.id] || "var(--fuel-other)",
-        }));
-    });
-    elements.mixChart.appendChild(svg);
-
     const latest = rows.at(-1);
     const latestTotal = catalog.reduce((sum, fuel) => sum + Math.max(Number(latest.fuels[fuel.id]) || 0, 0), 0);
     elements.mixTotal.querySelector("strong").textContent = formatInteger(latestTotal);
-    catalog.forEach((fuel) => {
-        const value = Math.max(Number(latest.fuels[fuel.id]) || 0, 0);
-        const percent = latestTotal ? value / latestTotal * 100 : 0;
-        const item = document.createElement("div");
-        item.className = "fuel-key";
-        const swatch = document.createElement("i");
-        swatch.className = "fuel-swatch";
-        swatch.style.setProperty("--fuel-color", FUEL_COLORS[fuel.id] || "var(--fuel-other)");
-        const label = document.createElement("span");
-        label.textContent = fuel.label;
-        const amount = document.createElement("strong");
-        amount.textContent = `${percent.toFixed(0)}%`;
-        item.append(swatch, label, amount);
-        elements.mixLegend.appendChild(item);
-    });
+    const options = baseChartOptions(`Stacked generation mix for ${snapshot.region.id} over ${rangeLabel()}. Select legend items to toggle fuels and drag horizontally to zoom.`);
+    options.chart.type = "area";
+    options.plotOptions.area = {
+        fillOpacity: 0.92,
+        lineWidth: 0.75,
+        stacking: "normal",
+    };
+    options.tooltip.formatter = function () {
+        const points = this.points || [];
+        const total = points.reduce((sum, point) => sum + (Number(point.y) || 0), 0);
+        const values = points.slice().reverse().map((point) => {
+            const percent = total ? point.y / total * 100 : 0;
+            return `<div class="chart-tooltip-row"><span><i style="background:${point.color}"></i>${point.series.name}</span><strong>${percent.toFixed(1)}% <small>${formatInteger(point.y)} MWh</small></strong></div>`;
+        }).join("");
+        return `<div class="chart-tooltip-content mix-tooltip"><strong class="chart-tooltip-heading">${formatTimestamp(this.x)}</strong><div class="chart-tooltip-total">Visible generation: ${formatInteger(total)} MWh</div>${values}</div>`;
+    };
+    options.series = catalog.map((fuel) => ({
+        ...seriesVisibility("mix", fuel.id),
+        color: fuelColor(fuel.id),
+        data: rows.map((row) => [new Date(row.timestamp).getTime(), Math.max(Number(row.fuels[fuel.id]) || 0, 0)]),
+        id: fuel.id,
+        name: fuel.label,
+        type: "area",
+    }));
+    state.charts.mix = chartLibrary.chart(elements.mixChart, options);
 }
 
 function updatePipelineHealth(manifest, snapshot) {
@@ -618,13 +587,6 @@ elements.rangeSwitcher.addEventListener("click", (event) => {
 });
 
 elements.refreshButton.addEventListener("click", () => loadDashboard(true));
-window.addEventListener("resize", () => {
-    const snapshot = state.snapshots.get(state.region);
-    if (snapshot) {
-        renderDemandChart(snapshot);
-        renderMixChart(snapshot);
-    }
-});
 
 configureTheme();
 void loadDashboard();
