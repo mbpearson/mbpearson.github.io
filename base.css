@@ -19,7 +19,6 @@ body {
     --logo-hover-color: var(--text-color);
     --link-color: #00829c;
     --link-highlight-color: #ffdcda;
-    /* --highlight-color: #00a21442; */
     --highlight-color: #44a7c370;
     --pre-text-color: #f8f8f2;
     --pre-background-color: #282a36
@@ -36,7 +35,7 @@ body {
     --logo-hover-color: #edf2f4;
     --link-color: #83cede;
     --link-highlight-color: #315f69;
-    --highlight-color: #2f829672;
+    --highlight-color: #3d9fb5b3;
     --pre-text-color: #f8f8f2;
     --pre-background-color: #20272b;
 }
