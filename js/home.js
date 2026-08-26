@@ -12,7 +12,7 @@ const navLinks = {
 
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-function showSection(sectionName, animate = true) {
+function showSection(sectionName, animate = true, duration = 200) {
     const selectedSection = sections[sectionName] || sections.home;
     const selectedName = sections[sectionName] ? sectionName : "home";
 
@@ -33,7 +33,7 @@ function showSection(sectionName, animate = true) {
     if (animate && !reducedMotion.matches) {
         selectedSection.animate(
             [{ opacity: 0 }, { opacity: 1 }],
-            { duration: 200, easing: "ease-out" },
+            { duration, easing: "ease-out" },
         );
     }
 }
@@ -57,4 +57,5 @@ document.querySelectorAll("[data-section-link]").forEach((link) => {
 });
 
 window.addEventListener("popstate", () => showSection(sectionFromHash(), false));
-showSection(sectionFromHash(), false);
+const initialSection = sectionFromHash();
+showSection(initialSection, initialSection === "home", 2000);
