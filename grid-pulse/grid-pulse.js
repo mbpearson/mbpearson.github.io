@@ -389,6 +389,7 @@ function renderMixChart(snapshot) {
     elements.mixTotal.querySelector("strong").textContent = formatInteger(latestTotal);
     const options = baseChartOptions(`Stacked generation mix for ${snapshot.region.id} over ${rangeLabel()}. Select legend items to toggle fuels and drag horizontally to zoom.`);
     options.chart.type = "area";
+    options.yAxis.gridZIndex = 4;
     options.plotOptions.area = {
         fillOpacity: 0.92,
         lineWidth: 0.75,
