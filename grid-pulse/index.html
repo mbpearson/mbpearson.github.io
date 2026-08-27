@@ -107,6 +107,7 @@
                 </div>
                 <p class="kpi-value"><span id="demand-value">—</span> <small>MWh</small></p>
                 <p id="demand-note" class="kpi-note">Awaiting data</p>
+                <p class="card-source">Source: <a href="https://www.eia.gov/opendata/browser/electricity/rto/region-data" target="_blank" rel="noopener noreferrer">U.S. EIA Form EIA-930 <span aria-hidden="true">↗</span></a></p>
             </article>
 
             <article class="kpi-card accent-cyan">
@@ -118,6 +119,7 @@
                 </div>
                 <p class="kpi-value"><span id="forecast-value">—</span><small>%</small></p>
                 <p id="forecast-note" class="kpi-note">Awaiting data</p>
+                <p class="card-source">Source: <a href="https://www.eia.gov/opendata/browser/electricity/rto/region-data" target="_blank" rel="noopener noreferrer">U.S. EIA Form EIA-930 <span aria-hidden="true">↗</span></a></p>
             </article>
 
             <article class="kpi-card accent-green">
@@ -129,6 +131,7 @@
                 </div>
                 <p class="kpi-value"><span id="renewable-value">—</span><small>%</small></p>
                 <p id="renewable-note" class="kpi-note">Awaiting data</p>
+                <p class="card-source">Source: <a href="https://www.eia.gov/opendata/browser/electricity/rto/fuel-type-data" target="_blank" rel="noopener noreferrer">U.S. EIA Form EIA-930 <span aria-hidden="true">↗</span></a></p>
             </article>
 
             <article class="kpi-card accent-amber">
@@ -140,6 +143,7 @@
                 </div>
                 <p class="kpi-value"><span id="interchange-value">—</span> <small>MWh</small></p>
                 <p id="interchange-note" class="kpi-note">Awaiting data</p>
+                <p class="card-source">Source: <a href="https://www.eia.gov/opendata/browser/electricity/rto/region-data" target="_blank" rel="noopener noreferrer">U.S. EIA Form EIA-930 <span aria-hidden="true">↗</span></a></p>
             </article>
         </section>
 
@@ -154,7 +158,10 @@
             </div>
             <figure>
                 <div id="demand-chart" class="chart-surface line-chart" aria-live="polite"></div>
-                <figcaption id="demand-caption">Demand and day-ahead forecast, reported hourly by EIA.</figcaption>
+                <figcaption id="demand-caption" class="chart-caption">
+                    <span id="demand-caption-text">Demand and day-ahead forecast, reported hourly by EIA.</span>
+                    <span class="card-source chart-source">Source: <a href="https://www.eia.gov/opendata/browser/electricity/rto/region-data" target="_blank" rel="noopener noreferrer">U.S. EIA Form EIA-930 <span aria-hidden="true">↗</span></a></span>
+                </figcaption>
             </figure>
         </section>
 
@@ -169,8 +176,45 @@
             </div>
             <figure>
                 <div id="mix-chart" class="chart-surface mix-chart" aria-live="polite"></div>
-                <figcaption>Toggle fuels in the legend and drag to zoom. Percentages in the tooltip reflect visible generation; negative source adjustments are excluded.</figcaption>
+                <figcaption class="chart-caption">
+                    <span>Toggle fuels in the legend and drag to zoom. Percentages in the tooltip reflect visible generation; negative source adjustments are excluded.</span>
+                    <span class="card-source chart-source">Source: <a href="https://www.eia.gov/opendata/browser/electricity/rto/fuel-type-data" target="_blank" rel="noopener noreferrer">U.S. EIA Form EIA-930 <span aria-hidden="true">↗</span></a></span>
+                </figcaption>
             </figure>
+        </section>
+
+        <section class="dashboard-card resource-map-card" aria-labelledby="resource-map-title">
+            <div class="card-header resource-map-header">
+                <div>
+                    <p class="eyebrow">Renewable potential</p>
+                    <h2 id="resource-map-title">U.S. solar and wind resources</h2>
+                    <p id="resource-map-subtitle" class="card-subtitle">Long-term average solar resource by state</p>
+                </div>
+                <div class="control-group resource-control-group">
+                    <span class="control-label">Resource</span>
+                    <div id="resource-switcher" class="segmented-control" role="group" aria-label="Map resource">
+                        <button type="button" data-resource="solar" aria-pressed="true">Solar</button>
+                        <button type="button" data-resource="wind" aria-pressed="false">Wind</button>
+                    </div>
+                </div>
+            </div>
+            <div class="resource-map-layout">
+                <figure>
+                    <div id="resource-map" class="chart-surface resource-map" aria-live="polite"></div>
+                    <figcaption class="chart-caption">
+                        <span>Hover over a state for its value and national rank. Use the map controls or scroll to zoom.</span>
+                        <span class="card-source chart-source">Sources: <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER <span aria-hidden="true">↗</span></a> <span aria-hidden="true">·</span> <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" target="_blank" rel="noopener noreferrer">U.S. Census Bureau <span aria-hidden="true">↗</span></a></span>
+                    </figcaption>
+                </figure>
+                <aside id="resource-detail" class="resource-detail" aria-live="polite">
+                    <p class="eyebrow">Selected state</p>
+                    <h3 id="resource-state-name">Select a state</h3>
+                    <p class="resource-detail-value"><strong id="resource-state-value">—</strong> <span id="resource-state-unit"></span></p>
+                    <p id="resource-state-rank" class="resource-detail-rank">Click any state to compare its resource.</p>
+                    <div class="resource-scale" aria-hidden="true"></div>
+                    <p id="resource-method" class="resource-method">NASA POWER climatology, aggregated to state boundaries.</p>
+                </aside>
+            </div>
         </section>
 
         <section id="data-flow" class="dashboard-card flow-card" aria-labelledby="flow-title">
@@ -199,6 +243,7 @@
                     <div><strong>Publish</strong><span>Static JSON on Pages</span></div>
                 </li>
             </ol>
+            <p class="card-source">Source: <a href="https://github.com/mbpearson/mbpearson.github.io/blob/main/.github/workflows/static.yml" target="_blank" rel="noopener noreferrer">Grid Pulse GitHub Actions workflow <span aria-hidden="true">↗</span></a></p>
         </section>
 
         <section class="operations-strip" aria-label="Pipeline health details">
@@ -230,6 +275,7 @@
 
     <noscript><p class="noscript-message">Grid Pulse requires JavaScript to render its static data snapshots.</p></noscript>
     <script src="https://cdn.jsdelivr.net/npm/highcharts@13.0.1/highcharts.js" integrity="sha384-5h49ghr7/kJSrZtU7RhWy8e9xVh0xmCde2W4RoAx4Mhf33bV3STID90ov9fUQEw4" crossorigin="anonymous" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/highcharts@13.0.1/modules/map.js" integrity="sha384-VjtxyaFpgksphfy6Bb84dDJCHlacizKYvYswMAiYPytPhXx5cwHxQNQ6FXB5A51I" crossorigin="anonymous" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/highcharts@13.0.1/modules/accessibility.js" integrity="sha384-Yg3wKqzJFJK0LOTuYVFjyueJcJyUoAPJKIRTXRNpdgwR3pcULpmkzd2eQ7zI3LuR" crossorigin="anonymous" defer></script>
     <script src="grid-pulse.js" defer></script>
 </body>

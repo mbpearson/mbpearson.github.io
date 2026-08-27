@@ -1,6 +1,7 @@
 "use strict";
 
 const DATA_ROOT = "data";
+const US_MAP_URL = "https://cdn.jsdelivr.net/npm/@highcharts/map-collection@2.3.3/countries/us/us-all.topo.json";
 const chartLibrary = globalThis["Highcharts"];
 const FUEL_COLOR_VARIABLES = {
     battery: "--fuel-battery",
@@ -31,13 +32,17 @@ const REGION_DESCRIPTIONS = {
  * @typedef {{generated_at: string, regions: ManifestRegion[], pipeline: {status: string, rows_processed: {total: number}, quality_checks: {passed: number, warning: number, failed: number, total: number}}}} GridManifest
  */
 
-/** @type {{manifest: GridManifest|null, region: string, hours: number, snapshots: Map<string, GridSnapshot>, charts: {demand: Object|null, mix: Object|null}, visibility: {demand: Map<string, boolean>, mix: Map<string, boolean>}}} */
+/** @type {{manifest: GridManifest|null, region: string, hours: number, snapshots: Map<string, GridSnapshot>, resources: Object|null, mapTopology: Object|null, resourceMetric: string, selectedState: string|null, charts: {demand: Object|null, mix: Object|null, resource: Object|null}, visibility: {demand: Map<string, boolean>, mix: Map<string, boolean>}}} */
 const state = {
     manifest: null,
     region: "miso",
     hours: 168,
     snapshots: new Map(),
-    charts: {demand: null, mix: null},
+    resources: null,
+    mapTopology: null,
+    resourceMetric: "solar",
+    selectedState: null,
+    charts: {demand: null, mix: null, resource: null},
     visibility: {demand: new Map(), mix: new Map()},
 };
 
@@ -61,11 +66,20 @@ const elements = {
     interchangeValue: document.querySelector("#interchange-value"),
     interchangeNote: document.querySelector("#interchange-note"),
     demandSubtitle: document.querySelector("#demand-subtitle"),
-    demandCaption: document.querySelector("#demand-caption"),
+    demandCaption: document.querySelector("#demand-caption-text"),
     demandChart: document.querySelector("#demand-chart"),
     mixSubtitle: document.querySelector("#mix-subtitle"),
     mixTotal: document.querySelector("#mix-total"),
     mixChart: document.querySelector("#mix-chart"),
+    resourceCard: document.querySelector(".resource-map-card"),
+    resourceSwitcher: document.querySelector("#resource-switcher"),
+    resourceSubtitle: document.querySelector("#resource-map-subtitle"),
+    resourceMap: document.querySelector("#resource-map"),
+    resourceStateName: document.querySelector("#resource-state-name"),
+    resourceStateValue: document.querySelector("#resource-state-value"),
+    resourceStateUnit: document.querySelector("#resource-state-unit"),
+    resourceStateRank: document.querySelector("#resource-state-rank"),
+    resourceMethod: document.querySelector("#resource-method"),
     freshnessValue: document.querySelector("#freshness-value"),
     rowsValue: document.querySelector("#rows-value"),
     checksValue: document.querySelector("#checks-value"),
@@ -101,6 +115,9 @@ function applyTheme(theme, persist = false) {
     if (snapshot) {
         renderDemandChart(snapshot);
         renderMixChart(snapshot);
+    }
+    if (state.resources && state.mapTopology) {
+        renderResourceMap();
     }
 }
 
@@ -172,6 +189,8 @@ function formatTimestamp(value, options = {}) {
         day: "numeric",
         hour: "numeric",
         minute: "2-digit",
+        timeZone: "UTC",
+        timeZoneName: "short",
         ...options,
     }).format(date);
 }
@@ -276,6 +295,10 @@ function baseChartOptions(description) {
         accessibility: {description},
         credits: {enabled: false},
         title: {text: null},
+        // time: {
+        //     useUTC: false,
+        //     timezone: 'America/Chicago',
+        // },
         legend: {
             align: "center",
             itemDistance: 20,
@@ -335,6 +358,7 @@ function renderDemandChart(snapshot) {
         elements.demandChart.innerHTML = '<div class="chart-empty">No demand observations are available.</div>';
         return;
     }
+
 
     const timestamps = rows.map((row) => new Date(row.timestamp).getTime());
     const dataStart = Math.min(...timestamps);
@@ -421,6 +445,153 @@ function renderMixChart(snapshot) {
     state.charts.mix = chartLibrary.chart(elements.mixChart, options);
 }
 
+function updateResourceDetail(postalCode = state.selectedState) {
+    const artifact = state.resources;
+    if (!artifact) {
+        return;
+    }
+    const definition = artifact.metrics[state.resourceMetric];
+    const stateRow = artifact.states.find((candidate) => candidate.postal_code === postalCode);
+    if (!stateRow) {
+        elements.resourceStateName.textContent = "Select a state";
+        elements.resourceStateValue.textContent = "—";
+        elements.resourceStateUnit.textContent = definition.unit;
+        elements.resourceStateRank.textContent = "Click any state to compare its resource.";
+        return;
+    }
+    const metric = stateRow.metrics[state.resourceMetric];
+    state.selectedState = stateRow.postal_code;
+    elements.resourceStateName.textContent = `${stateRow.name} (${stateRow.postal_code})`;
+    elements.resourceStateValue.textContent = metric.value.toFixed(2);
+    elements.resourceStateUnit.textContent = definition.unit;
+    elements.resourceStateRank.textContent = `Ranks #${metric.rank} of 50 · ${metric.percentile}th percentile nationally`;
+}
+
+function renderResourceMap() {
+    const artifact = state.resources;
+    if (!artifact || !state.mapTopology || typeof chartLibrary.mapChart !== "function") {
+        return;
+    }
+    destroyChart("resource", elements.resourceMap);
+    const metricName = state.resourceMetric;
+    const definition = artifact.metrics[metricName];
+    const theme = chartTheme();
+    const isSolar = metricName === "solar";
+    const values = artifact.states.map((stateRow) => stateRow.metrics[metricName].value);
+    const minimum = Math.min(...values);
+    const maximum = Math.max(...values);
+    elements.resourceCard.dataset.resource = metricName;
+    elements.resourceSubtitle.textContent = `Long-term average ${definition.label.toLowerCase()} by state`;
+    elements.resourceMethod.textContent = `${artifact.source.nasa}; ${artifact.source.method.toLowerCase()}.`;
+    elements.resourceSwitcher.querySelectorAll("button[data-resource]").forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.resource === metricName));
+    });
+
+    state.charts.resource = chartLibrary.mapChart(elements.resourceMap, {
+        chart: {
+            animation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+            backgroundColor: "transparent",
+            map: state.mapTopology,
+            spacing: [8, 8, 8, 8],
+            style: {fontFamily: getComputedStyle(document.body).fontFamily},
+        },
+        accessibility: {
+            description: `Interactive U.S. map of ${definition.label.toLowerCase()}. Select a state to display its value and rank.`,
+        },
+        colorAxis: {
+            min: minimum,
+            max: maximum,
+            minColor: isSolar ? "#f2e9d0" : "#dcebea",
+            maxColor: isSolar ? "#812f78" : "#31568e",
+            stops: isSolar
+                ? [[0, "#f2e9d0"], [0.42, "#f5bd4f"], [0.72, "#e45b32"], [1, "#812f78"]]
+                : [[0, "#dcebea"], [0.4, "#70c5c2"], [0.72, "#238da8"], [1, "#31568e"]],
+            labels: {format: `{value:.1f}`, style: {color: theme.textFaint, fontSize: "10px"}},
+        },
+        credits: {enabled: false},
+        legend: {
+            align: "center",
+            itemStyle: {color: theme.textSoft, fontSize: "11px"},
+            layout: "horizontal",
+            symbolHeight: 10,
+            symbolWidth: 260,
+            verticalAlign: "bottom",
+        },
+        mapNavigation: {
+            enabled: true,
+            enableMouseWheelZoom: true,
+            buttonOptions: {
+                align: "left",
+                theme: {fill: theme.background, stroke: theme.border, "stroke-width": 1, r: 7, style: {color: theme.text}},
+                verticalAlign: "bottom",
+            },
+        },
+        title: {text: null},
+        tooltip: {
+            backgroundColor: theme.background,
+            borderColor: theme.border,
+            borderRadius: 10,
+            outside: true,
+            padding: 10,
+            shadow: true,
+            useHTML: true,
+            formatter() {
+                const custom = this.point.options.custom;
+                return `<div class="chart-tooltip-content"><strong class="chart-tooltip-heading">${custom.name}</strong><div class="chart-tooltip-row"><span>${definition.label}</span><strong>${this.point.value.toFixed(2)} ${definition.unit}</strong></div><div class="chart-tooltip-row"><span>National rank</span><strong>#${custom.rank} of 50</strong></div></div>`;
+            },
+        },
+        plotOptions: {
+            map: {
+                borderColor: theme.background,
+                borderWidth: 1,
+                cursor: "pointer",
+                nullColor: cssValue("--surface-muted"),
+                states: {
+                    hover: {borderColor: theme.text, borderWidth: 1.5, brightness: 0.08},
+                    select: {borderColor: theme.text, borderWidth: 2, color: undefined},
+                },
+            },
+        },
+        series: [{
+            allAreas: false,
+            data: artifact.states.map((stateRow) => {
+                const metric = stateRow.metrics[metricName];
+                return {
+                    "hc-key": stateRow.hc_key,
+                    value: metric.value,
+                    custom: {name: stateRow.name, postalCode: stateRow.postal_code, rank: metric.rank, percentile: metric.percentile},
+                    selected: stateRow.postal_code === state.selectedState,
+                };
+            }),
+            dataLabels: {enabled: false},
+            joinBy: "hc-key",
+            name: definition.label,
+            point: {
+                events: {
+                    click() { updateResourceDetail(this.options.custom.postalCode); },
+                },
+            },
+            allowPointSelect: true,
+        }],
+    });
+    updateResourceDetail();
+}
+
+async function loadResourceMap(force = false) {
+    if (force || !state.resources) {
+        state.resources = await fetchJson(`${DATA_ROOT}/us-renewable-resources.json`, force ? String(Date.now()) : "");
+    }
+    if (!state.mapTopology) {
+        state.mapTopology = await fetchJson(US_MAP_URL);
+    }
+    renderResourceMap();
+}
+
+function showResourceMapError() {
+    destroyChart("resource", elements.resourceMap);
+    elements.resourceMap.innerHTML = '<div class="chart-empty">Renewable resource map data is unavailable.</div>';
+}
+
 function updatePipelineHealth(manifest, snapshot) {
     const pipeline = manifest.pipeline;
     const status = pipeline.status;
@@ -476,7 +647,7 @@ function updateLabels(snapshot) {
     elements.regionDescription.textContent = REGION_DESCRIPTIONS[snapshot.region.slug]
         || `${snapshot.region.id} is the selected grid region.`;
     elements.demandSubtitle.textContent = `${snapshot.region.name} · ${rangeLabel()} · hourly MWh`;
-    elements.demandCaption.textContent = `Actual demand and day-ahead forecast. Times are displayed in ${Intl.DateTimeFormat().resolvedOptions().timeZone}.`;
+    elements.demandCaption.textContent = "Actual demand and day-ahead forecast. Times are displayed in UTC.";
     elements.mixSubtitle.textContent = `${snapshot.region.name} · ${rangeLabel()} · positive reported generation`;
 }
 
@@ -552,8 +723,13 @@ async function loadDashboard(force = false) {
             state.snapshots.clear();
             chooseInitialState();
         }
+        const resourcePromise = loadResourceMap(force).catch((error) => {
+            console.error("Resource map could not be loaded.", error);
+            showResourceMapError();
+        });
         const snapshot = await loadRegion(state.region, force);
         render(snapshot);
+        await resourcePromise;
         hideMessage();
     } catch (error) {
         console.error(error);
@@ -593,6 +769,15 @@ elements.rangeSwitcher.addEventListener("click", (event) => {
     if (snapshot) {
         render(snapshot);
     }
+});
+
+elements.resourceSwitcher.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-resource]");
+    if (!button || button.dataset.resource === state.resourceMetric) {
+        return;
+    }
+    state.resourceMetric = button.dataset.resource;
+    renderResourceMap();
 });
 
 elements.refreshButton.addEventListener("click", () => loadDashboard(true));

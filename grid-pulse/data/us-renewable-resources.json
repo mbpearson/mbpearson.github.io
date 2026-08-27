@@ -1,0 +1,880 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-27T17:20:43Z",
+  "source": {
+    "nasa": "NASA POWER Climatology API (2001\u20132020)",
+    "boundaries": "U.S. Census Bureau 2025 Cartographic Boundary Files",
+    "method": "Equal-area intersection-weighted mean"
+  },
+  "metrics": {
+    "solar": {
+      "parameter": "ALLSKY_SFC_SW_DWN",
+      "label": "Solar resource",
+      "unit": "kWh/m\u00b2/day"
+    },
+    "wind": {
+      "parameter": "WS50M",
+      "label": "Wind speed at 50 m",
+      "unit": "m/s"
+    }
+  },
+  "processing": {
+    "states": 50,
+    "grid_cells": {
+      "solar": 2430,
+      "wind": 7994
+    }
+  },
+  "states": [
+    {
+      "postal_code": "AL",
+      "hc_key": "us-al",
+      "name": "Alabama",
+      "metrics": {
+        "solar": {
+          "value": 4.58,
+          "rank": 16,
+          "percentile": 69
+        },
+        "wind": {
+          "value": 4.1,
+          "rank": 49,
+          "percentile": 2
+        }
+      }
+    },
+    {
+      "postal_code": "AK",
+      "hc_key": "us-ak",
+      "name": "Alaska",
+      "metrics": {
+        "solar": {
+          "value": 2.51,
+          "rank": 50,
+          "percentile": 0
+        },
+        "wind": {
+          "value": 5.21,
+          "rank": 23,
+          "percentile": 55
+        }
+      }
+    },
+    {
+      "postal_code": "AZ",
+      "hc_key": "us-az",
+      "name": "Arizona",
+      "metrics": {
+        "solar": {
+          "value": 5.71,
+          "rank": 1,
+          "percentile": 100
+        },
+        "wind": {
+          "value": 5.11,
+          "rank": 26,
+          "percentile": 49
+        }
+      }
+    },
+    {
+      "postal_code": "AR",
+      "hc_key": "us-ar",
+      "name": "Arkansas",
+      "metrics": {
+        "solar": {
+          "value": 4.45,
+          "rank": 18,
+          "percentile": 65
+        },
+        "wind": {
+          "value": 4.72,
+          "rank": 36,
+          "percentile": 29
+        }
+      }
+    },
+    {
+      "postal_code": "CA",
+      "hc_key": "us-ca",
+      "name": "California",
+      "metrics": {
+        "solar": {
+          "value": 5.37,
+          "rank": 4,
+          "percentile": 94
+        },
+        "wind": {
+          "value": 4.33,
+          "rank": 47,
+          "percentile": 6
+        }
+      }
+    },
+    {
+      "postal_code": "CO",
+      "hc_key": "us-co",
+      "name": "Colorado",
+      "metrics": {
+        "solar": {
+          "value": 4.96,
+          "rank": 8,
+          "percentile": 86
+        },
+        "wind": {
+          "value": 5.6,
+          "rank": 22,
+          "percentile": 57
+        }
+      }
+    },
+    {
+      "postal_code": "CT",
+      "hc_key": "us-ct",
+      "name": "Connecticut",
+      "metrics": {
+        "solar": {
+          "value": 3.9,
+          "rank": 38,
+          "percentile": 24
+        },
+        "wind": {
+          "value": 4.65,
+          "rank": 37,
+          "percentile": 27
+        }
+      }
+    },
+    {
+      "postal_code": "DE",
+      "hc_key": "us-de",
+      "name": "Delaware",
+      "metrics": {
+        "solar": {
+          "value": 4.14,
+          "rank": 27,
+          "percentile": 47
+        },
+        "wind": {
+          "value": 6.44,
+          "rank": 10,
+          "percentile": 82
+        }
+      }
+    },
+    {
+      "postal_code": "FL",
+      "hc_key": "us-fl",
+      "name": "Florida",
+      "metrics": {
+        "solar": {
+          "value": 4.91,
+          "rank": 9,
+          "percentile": 84
+        },
+        "wind": {
+          "value": 4.92,
+          "rank": 28,
+          "percentile": 45
+        }
+      }
+    },
+    {
+      "postal_code": "GA",
+      "hc_key": "us-ga",
+      "name": "Georgia",
+      "metrics": {
+        "solar": {
+          "value": 4.64,
+          "rank": 12,
+          "percentile": 78
+        },
+        "wind": {
+          "value": 4.53,
+          "rank": 41,
+          "percentile": 18
+        }
+      }
+    },
+    {
+      "postal_code": "HI",
+      "hc_key": "us-hi",
+      "name": "Hawaii",
+      "metrics": {
+        "solar": {
+          "value": 5.49,
+          "rank": 3,
+          "percentile": 96
+        },
+        "wind": {
+          "value": 5.88,
+          "rank": 17,
+          "percentile": 67
+        }
+      }
+    },
+    {
+      "postal_code": "ID",
+      "hc_key": "us-id",
+      "name": "Idaho",
+      "metrics": {
+        "solar": {
+          "value": 4.33,
+          "rank": 21,
+          "percentile": 59
+        },
+        "wind": {
+          "value": 4.36,
+          "rank": 46,
+          "percentile": 8
+        }
+      }
+    },
+    {
+      "postal_code": "IL",
+      "hc_key": "us-il",
+      "name": "Illinois",
+      "metrics": {
+        "solar": {
+          "value": 4.06,
+          "rank": 31,
+          "percentile": 39
+        },
+        "wind": {
+          "value": 6.55,
+          "rank": 9,
+          "percentile": 84
+        }
+      }
+    },
+    {
+      "postal_code": "IN",
+      "hc_key": "us-in",
+      "name": "Indiana",
+      "metrics": {
+        "solar": {
+          "value": 3.98,
+          "rank": 34,
+          "percentile": 33
+        },
+        "wind": {
+          "value": 6.21,
+          "rank": 14,
+          "percentile": 73
+        }
+      }
+    },
+    {
+      "postal_code": "IA",
+      "hc_key": "us-ia",
+      "name": "Iowa",
+      "metrics": {
+        "solar": {
+          "value": 4.06,
+          "rank": 30,
+          "percentile": 41
+        },
+        "wind": {
+          "value": 6.97,
+          "rank": 5,
+          "percentile": 92
+        }
+      }
+    },
+    {
+      "postal_code": "KS",
+      "hc_key": "us-ks",
+      "name": "Kansas",
+      "metrics": {
+        "solar": {
+          "value": 4.64,
+          "rank": 13,
+          "percentile": 76
+        },
+        "wind": {
+          "value": 7.13,
+          "rank": 3,
+          "percentile": 96
+        }
+      }
+    },
+    {
+      "postal_code": "KY",
+      "hc_key": "us-ky",
+      "name": "Kentucky",
+      "metrics": {
+        "solar": {
+          "value": 4.13,
+          "rank": 28,
+          "percentile": 45
+        },
+        "wind": {
+          "value": 4.84,
+          "rank": 31,
+          "percentile": 39
+        }
+      }
+    },
+    {
+      "postal_code": "LA",
+      "hc_key": "us-la",
+      "name": "Louisiana",
+      "metrics": {
+        "solar": {
+          "value": 4.64,
+          "rank": 11,
+          "percentile": 80
+        },
+        "wind": {
+          "value": 4.88,
+          "rank": 29,
+          "percentile": 43
+        }
+      }
+    },
+    {
+      "postal_code": "ME",
+      "hc_key": "us-me",
+      "name": "Maine",
+      "metrics": {
+        "solar": {
+          "value": 3.57,
+          "rank": 49,
+          "percentile": 2
+        },
+        "wind": {
+          "value": 4.74,
+          "rank": 34,
+          "percentile": 33
+        }
+      }
+    },
+    {
+      "postal_code": "MD",
+      "hc_key": "us-md",
+      "name": "Maryland",
+      "metrics": {
+        "solar": {
+          "value": 4.09,
+          "rank": 29,
+          "percentile": 43
+        },
+        "wind": {
+          "value": 5.71,
+          "rank": 18,
+          "percentile": 65
+        }
+      }
+    },
+    {
+      "postal_code": "MA",
+      "hc_key": "us-ma",
+      "name": "Massachusetts",
+      "metrics": {
+        "solar": {
+          "value": 3.82,
+          "rank": 40,
+          "percentile": 20
+        },
+        "wind": {
+          "value": 5.13,
+          "rank": 25,
+          "percentile": 51
+        }
+      }
+    },
+    {
+      "postal_code": "MI",
+      "hc_key": "us-mi",
+      "name": "Michigan",
+      "metrics": {
+        "solar": {
+          "value": 3.65,
+          "rank": 46,
+          "percentile": 8
+        },
+        "wind": {
+          "value": 6.36,
+          "rank": 12,
+          "percentile": 78
+        }
+      }
+    },
+    {
+      "postal_code": "MN",
+      "hc_key": "us-mn",
+      "name": "Minnesota",
+      "metrics": {
+        "solar": {
+          "value": 3.78,
+          "rank": 42,
+          "percentile": 16
+        },
+        "wind": {
+          "value": 6.73,
+          "rank": 6,
+          "percentile": 90
+        }
+      }
+    },
+    {
+      "postal_code": "MS",
+      "hc_key": "us-ms",
+      "name": "Mississippi",
+      "metrics": {
+        "solar": {
+          "value": 4.58,
+          "rank": 15,
+          "percentile": 71
+        },
+        "wind": {
+          "value": 4.47,
+          "rank": 42,
+          "percentile": 16
+        }
+      }
+    },
+    {
+      "postal_code": "MO",
+      "hc_key": "us-mo",
+      "name": "Missouri",
+      "metrics": {
+        "solar": {
+          "value": 4.26,
+          "rank": 24,
+          "percentile": 53
+        },
+        "wind": {
+          "value": 5.67,
+          "rank": 19,
+          "percentile": 63
+        }
+      }
+    },
+    {
+      "postal_code": "MT",
+      "hc_key": "us-mt",
+      "name": "Montana",
+      "metrics": {
+        "solar": {
+          "value": 4.02,
+          "rank": 32,
+          "percentile": 37
+        },
+        "wind": {
+          "value": 5.95,
+          "rank": 16,
+          "percentile": 69
+        }
+      }
+    },
+    {
+      "postal_code": "NE",
+      "hc_key": "us-ne",
+      "name": "Nebraska",
+      "metrics": {
+        "solar": {
+          "value": 4.44,
+          "rank": 19,
+          "percentile": 63
+        },
+        "wind": {
+          "value": 7.27,
+          "rank": 1,
+          "percentile": 100
+        }
+      }
+    },
+    {
+      "postal_code": "NV",
+      "hc_key": "us-nv",
+      "name": "Nevada",
+      "metrics": {
+        "solar": {
+          "value": 5.16,
+          "rank": 5,
+          "percentile": 92
+        },
+        "wind": {
+          "value": 4.73,
+          "rank": 35,
+          "percentile": 31
+        }
+      }
+    },
+    {
+      "postal_code": "NH",
+      "hc_key": "us-nh",
+      "name": "New Hampshire",
+      "metrics": {
+        "solar": {
+          "value": 3.65,
+          "rank": 45,
+          "percentile": 10
+        },
+        "wind": {
+          "value": 4.46,
+          "rank": 44,
+          "percentile": 12
+        }
+      }
+    },
+    {
+      "postal_code": "NJ",
+      "hc_key": "us-nj",
+      "name": "New Jersey",
+      "metrics": {
+        "solar": {
+          "value": 3.97,
+          "rank": 35,
+          "percentile": 31
+        },
+        "wind": {
+          "value": 5.64,
+          "rank": 20,
+          "percentile": 61
+        }
+      }
+    },
+    {
+      "postal_code": "NM",
+      "hc_key": "us-nm",
+      "name": "New Mexico",
+      "metrics": {
+        "solar": {
+          "value": 5.57,
+          "rank": 2,
+          "percentile": 98
+        },
+        "wind": {
+          "value": 6.09,
+          "rank": 15,
+          "percentile": 71
+        }
+      }
+    },
+    {
+      "postal_code": "NY",
+      "hc_key": "us-ny",
+      "name": "New York",
+      "metrics": {
+        "solar": {
+          "value": 3.64,
+          "rank": 47,
+          "percentile": 6
+        },
+        "wind": {
+          "value": 4.86,
+          "rank": 30,
+          "percentile": 41
+        }
+      }
+    },
+    {
+      "postal_code": "NC",
+      "hc_key": "us-nc",
+      "name": "North Carolina",
+      "metrics": {
+        "solar": {
+          "value": 4.42,
+          "rank": 20,
+          "percentile": 61
+        },
+        "wind": {
+          "value": 5.08,
+          "rank": 27,
+          "percentile": 47
+        }
+      }
+    },
+    {
+      "postal_code": "ND",
+      "hc_key": "us-nd",
+      "name": "North Dakota",
+      "metrics": {
+        "solar": {
+          "value": 3.95,
+          "rank": 36,
+          "percentile": 29
+        },
+        "wind": {
+          "value": 7.21,
+          "rank": 2,
+          "percentile": 98
+        }
+      }
+    },
+    {
+      "postal_code": "OH",
+      "hc_key": "us-oh",
+      "name": "Ohio",
+      "metrics": {
+        "solar": {
+          "value": 3.87,
+          "rank": 39,
+          "percentile": 22
+        },
+        "wind": {
+          "value": 5.6,
+          "rank": 21,
+          "percentile": 59
+        }
+      }
+    },
+    {
+      "postal_code": "OK",
+      "hc_key": "us-ok",
+      "name": "Oklahoma",
+      "metrics": {
+        "solar": {
+          "value": 4.74,
+          "rank": 10,
+          "percentile": 82
+        },
+        "wind": {
+          "value": 6.65,
+          "rank": 7,
+          "percentile": 88
+        }
+      }
+    },
+    {
+      "postal_code": "OR",
+      "hc_key": "us-or",
+      "name": "Oregon",
+      "metrics": {
+        "solar": {
+          "value": 4.32,
+          "rank": 22,
+          "percentile": 57
+        },
+        "wind": {
+          "value": 4.6,
+          "rank": 39,
+          "percentile": 22
+        }
+      }
+    },
+    {
+      "postal_code": "PA",
+      "hc_key": "us-pa",
+      "name": "Pennsylvania",
+      "metrics": {
+        "solar": {
+          "value": 3.75,
+          "rank": 44,
+          "percentile": 12
+        },
+        "wind": {
+          "value": 4.58,
+          "rank": 40,
+          "percentile": 20
+        }
+      }
+    },
+    {
+      "postal_code": "RI",
+      "hc_key": "us-ri",
+      "name": "Rhode Island",
+      "metrics": {
+        "solar": {
+          "value": 3.99,
+          "rank": 33,
+          "percentile": 35
+        },
+        "wind": {
+          "value": 5.2,
+          "rank": 24,
+          "percentile": 53
+        }
+      }
+    },
+    {
+      "postal_code": "SC",
+      "hc_key": "us-sc",
+      "name": "South Carolina",
+      "metrics": {
+        "solar": {
+          "value": 4.61,
+          "rank": 14,
+          "percentile": 73
+        },
+        "wind": {
+          "value": 4.82,
+          "rank": 32,
+          "percentile": 37
+        }
+      }
+    },
+    {
+      "postal_code": "SD",
+      "hc_key": "us-sd",
+      "name": "South Dakota",
+      "metrics": {
+        "solar": {
+          "value": 4.19,
+          "rank": 26,
+          "percentile": 49
+        },
+        "wind": {
+          "value": 7.1,
+          "rank": 4,
+          "percentile": 94
+        }
+      }
+    },
+    {
+      "postal_code": "TN",
+      "hc_key": "us-tn",
+      "name": "Tennessee",
+      "metrics": {
+        "solar": {
+          "value": 4.3,
+          "rank": 23,
+          "percentile": 55
+        },
+        "wind": {
+          "value": 4.63,
+          "rank": 38,
+          "percentile": 24
+        }
+      }
+    },
+    {
+      "postal_code": "TX",
+      "hc_key": "us-tx",
+      "name": "Texas",
+      "metrics": {
+        "solar": {
+          "value": 5.07,
+          "rank": 6,
+          "percentile": 90
+        },
+        "wind": {
+          "value": 6.37,
+          "rank": 11,
+          "percentile": 80
+        }
+      }
+    },
+    {
+      "postal_code": "UT",
+      "hc_key": "us-ut",
+      "name": "Utah",
+      "metrics": {
+        "solar": {
+          "value": 5.03,
+          "rank": 7,
+          "percentile": 88
+        },
+        "wind": {
+          "value": 4.82,
+          "rank": 33,
+          "percentile": 35
+        }
+      }
+    },
+    {
+      "postal_code": "VT",
+      "hc_key": "us-vt",
+      "name": "Vermont",
+      "metrics": {
+        "solar": {
+          "value": 3.57,
+          "rank": 48,
+          "percentile": 4
+        },
+        "wind": {
+          "value": 4.41,
+          "rank": 45,
+          "percentile": 10
+        }
+      }
+    },
+    {
+      "postal_code": "VA",
+      "hc_key": "us-va",
+      "name": "Virginia",
+      "metrics": {
+        "solar": {
+          "value": 4.22,
+          "rank": 25,
+          "percentile": 51
+        },
+        "wind": {
+          "value": 4.47,
+          "rank": 43,
+          "percentile": 14
+        }
+      }
+    },
+    {
+      "postal_code": "WA",
+      "hc_key": "us-wa",
+      "name": "Washington",
+      "metrics": {
+        "solar": {
+          "value": 3.79,
+          "rank": 41,
+          "percentile": 18
+        },
+        "wind": {
+          "value": 4.0,
+          "rank": 50,
+          "percentile": 0
+        }
+      }
+    },
+    {
+      "postal_code": "WV",
+      "hc_key": "us-wv",
+      "name": "West Virginia",
+      "metrics": {
+        "solar": {
+          "value": 3.94,
+          "rank": 37,
+          "percentile": 27
+        },
+        "wind": {
+          "value": 4.27,
+          "rank": 48,
+          "percentile": 4
+        }
+      }
+    },
+    {
+      "postal_code": "WI",
+      "hc_key": "us-wi",
+      "name": "Wisconsin",
+      "metrics": {
+        "solar": {
+          "value": 3.78,
+          "rank": 43,
+          "percentile": 14
+        },
+        "wind": {
+          "value": 6.57,
+          "rank": 8,
+          "percentile": 86
+        }
+      }
+    },
+    {
+      "postal_code": "WY",
+      "hc_key": "us-wy",
+      "name": "Wyoming",
+      "metrics": {
+        "solar": {
+          "value": 4.52,
+          "rank": 17,
+          "percentile": 67
+        },
+        "wind": {
+          "value": 6.31,
+          "rank": 13,
+          "percentile": 76
+        }
+      }
+    }
+  ]
+}

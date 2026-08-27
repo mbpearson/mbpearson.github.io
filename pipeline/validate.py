@@ -96,6 +96,86 @@ def require_valid(report: ValidationReport) -> ValidationReport:
     return report
 
 
+def validate_resource_map(
+    artifact: Any, *, now: datetime | None = None
+) -> ValidationReport:
+    """Validate the static state-level NASA POWER resource-map artifact."""
+    checked = _utc_now(now)
+    checks: list[ValidationCheck] = []
+    if not isinstance(artifact, Mapping):
+        return ValidationReport(
+            "U.S. renewable resource map",
+            _iso(checked),
+            (ValidationCheck("resource_structure", "failed", "Artifact is not an object."),),
+        )
+
+    states = artifact.get("states")
+    metrics = artifact.get("metrics")
+    structure_errors = []
+    if artifact.get("schema_version") != 1:
+        structure_errors.append("schema_version must equal 1")
+    if not isinstance(states, list):
+        structure_errors.append("states must be a list")
+    if not isinstance(metrics, Mapping) or set(metrics) != {"solar", "wind"}:
+        structure_errors.append("metrics must define solar and wind")
+    checks.append(
+        ValidationCheck(
+            "resource_structure",
+            "failed" if structure_errors else "passed",
+            "; ".join(structure_errors) if structure_errors else "Resource-map schema is present.",
+        )
+    )
+    if structure_errors or not isinstance(states, list):
+        return ValidationReport("U.S. renewable resource map", _iso(checked), tuple(checks))
+
+    errors: list[str] = []
+    postals: list[str] = []
+    map_keys: list[str] = []
+    for index, state in enumerate(states):
+        if not isinstance(state, Mapping):
+            errors.append(f"state {index} is not an object")
+            continue
+        postal = state.get("postal_code")
+        map_key = state.get("hc_key")
+        if not isinstance(postal, str) or len(postal) != 2:
+            errors.append(f"state {index}.postal_code is invalid")
+        else:
+            postals.append(postal)
+        if not isinstance(map_key, str) or not map_key.startswith("us-"):
+            errors.append(f"state {index}.hc_key is invalid")
+        else:
+            map_keys.append(map_key)
+        state_metrics = state.get("metrics")
+        if not isinstance(state_metrics, Mapping):
+            errors.append(f"state {index}.metrics is invalid")
+            continue
+        for metric in ("solar", "wind"):
+            value = state_metrics.get(metric)
+            if not isinstance(value, Mapping):
+                errors.append(f"state {index}.{metric} is missing")
+                continue
+            if not _is_number(value.get("value")) or value["value"] < 0:
+                errors.append(f"state {index}.{metric}.value is invalid")
+            if not isinstance(value.get("rank"), int) or not 1 <= value["rank"] <= 50:
+                errors.append(f"state {index}.{metric}.rank is invalid")
+            if not isinstance(value.get("percentile"), int) or not 0 <= value["percentile"] <= 100:
+                errors.append(f"state {index}.{metric}.percentile is invalid")
+
+    if len(states) != 50:
+        errors.append(f"expected 50 states; received {len(states)}")
+    if len(postals) != len(set(postals)) or len(map_keys) != len(set(map_keys)):
+        errors.append("state identifiers must be unique")
+    checks.append(
+        ValidationCheck(
+            "state_resources",
+            "failed" if errors else "passed",
+            "; ".join(errors[:10]) if errors else "Validated solar and wind metrics for 50 states.",
+            {"states": len(states), "errors": len(errors)},
+        )
+    )
+    return ValidationReport("U.S. renewable resource map", _iso(checked), tuple(checks))
+
+
 def _utc_now(now: datetime | None) -> datetime:
     value = now or datetime.now(timezone.utc)
     if value.tzinfo is None:
