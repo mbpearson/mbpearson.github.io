@@ -82,7 +82,7 @@ html {
 }
 
 body {
-    min-width: 320px;
+    min-width: 0;
     margin: 0;
     color: var(--text);
     background: radial-gradient(circle at 82% 0%, var(--page-glow), transparent 30rem), var(--page-bg);
@@ -767,6 +767,18 @@ figcaption { margin-top: 0.75rem; color: var(--text-faint); font-size: 0.72rem; 
     .header-nav { gap: 0.5rem; }
     .header-nav a:not(:last-of-type) { display: none; }
     .dashboard { padding-top: 2.5rem; }
+    .site-header {
+        background: var(--page-bg);
+        backdrop-filter: none;
+    }
+    .kpi-card,
+    .dashboard-card,
+    .operations-strip {
+        background: var(--surface-solid);
+        backdrop-filter: none;
+    }
+    .chart-caption,
+    .resource-map-layout > * { min-width: 0; }
     .hero h1 { font-size: clamp(3.25rem, 5vw, 4.5rem); }
     .dashboard-controls { display: grid; grid-template-columns: 1fr auto; align-items: end; }
     .control-group:first-child { grid-column: 1 / -1; }
