@@ -36,6 +36,16 @@ jobs:
       - name: Run pipeline tests
         run: python -m unittest discover -s tests -v
 
+      - name: Restore annual state source cache
+        id: state-source-cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            grid-pulse/data/source/nasa-power-climatology.json
+            grid-pulse/data/source/state-generation.json
+            grid-pulse/data/source/state-emissions.json
+          key: state-energy-v1-2019-2024-${{ hashFiles('pipeline/nasa_power_client.py', 'pipeline/eia_state_client.py') }}
+
       - name: Fetch EIA data
         env:
           EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
@@ -45,7 +55,14 @@ jobs:
             --output-dir grid-pulse/data/source
 
       - name: Fetch NASA POWER climatology
+        if: steps.state-source-cache.outputs.cache-hit != 'true'
         run: python -m pipeline.nasa_power_client
+
+      - name: Fetch annual EIA state data
+        if: steps.state-source-cache.outputs.cache-hit != 'true'
+        env:
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+        run: python -m pipeline.eia_state_client --start-year 2019 --end-year 2024
 
       - name: Validate and build dashboard data
         run: |
@@ -53,6 +70,7 @@ jobs:
             --source-dir grid-pulse/data/source \
             --output-dir grid-pulse/data
           python -m pipeline.resource_map
+          python -m pipeline.state_energy
 
       - name: Assemble static site
         run: |

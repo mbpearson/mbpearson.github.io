@@ -32,7 +32,7 @@ const REGION_DESCRIPTIONS = {
  * @typedef {{generated_at: string, regions: ManifestRegion[], pipeline: {status: string, rows_processed: {total: number}, quality_checks: {passed: number, warning: number, failed: number, total: number}}}} GridManifest
  */
 
-/** @type {{manifest: GridManifest|null, region: string, hours: number, snapshots: Map<string, GridSnapshot>, resources: Object|null, mapTopology: Object|null, resourceMetric: string, selectedState: string|null, charts: {demand: Object|null, mix: Object|null, resource: Object|null}, visibility: {demand: Map<string, boolean>, mix: Map<string, boolean>}}} */
+/** @type {{manifest: GridManifest|null, region: string, hours: number, snapshots: Map<string, GridSnapshot>, resources: Object|null, mapTopology: Object|null, resourceMetric: string, mapMode: string, selectedState: string|null, charts: Object<string, Object|null>, visibility: {demand: Map<string, boolean>, mix: Map<string, boolean>}}} */
 const state = {
     manifest: null,
     region: "miso",
@@ -41,8 +41,9 @@ const state = {
     resources: null,
     mapTopology: null,
     resourceMetric: "solar",
+    mapMode: "opportunity",
     selectedState: null,
-    charts: {demand: null, mix: null, resource: null},
+    charts: {demand: null, mix: null, resource: null, opportunity: null, stateTrend: null},
     visibility: {demand: new Map(), mix: new Map()},
 };
 
@@ -73,6 +74,7 @@ const elements = {
     mixChart: document.querySelector("#mix-chart"),
     resourceCard: document.querySelector(".resource-map-card"),
     resourceSwitcher: document.querySelector("#resource-switcher"),
+    mapModeSwitcher: document.querySelector("#map-mode-switcher"),
     resourceSubtitle: document.querySelector("#resource-map-subtitle"),
     resourceMap: document.querySelector("#resource-map"),
     resourceStateName: document.querySelector("#resource-state-name"),
@@ -80,6 +82,14 @@ const elements = {
     resourceStateUnit: document.querySelector("#resource-state-unit"),
     resourceStateRank: document.querySelector("#resource-state-rank"),
     resourceMethod: document.querySelector("#resource-method"),
+    opportunityChart: document.querySelector("#opportunity-chart"),
+    stateSelect: document.querySelector("#state-select"),
+    stateRenewableShare: document.querySelector("#state-renewable-share"),
+    stateRenewableGrowth: document.querySelector("#state-renewable-growth"),
+    stateCarbon: document.querySelector("#state-carbon"),
+    stateTrendChart: document.querySelector("#state-trend-chart"),
+    stateMix: document.querySelector("#state-mix"),
+    opportunityTableBody: document.querySelector("#opportunity-table-body"),
     freshnessValue: document.querySelector("#freshness-value"),
     rowsValue: document.querySelector("#rows-value"),
     checksValue: document.querySelector("#checks-value"),
@@ -117,7 +127,7 @@ function applyTheme(theme, persist = false) {
         renderMixChart(snapshot);
     }
     if (state.resources && state.mapTopology) {
-        renderResourceMap();
+        renderStateExplorer();
     }
 }
 
@@ -592,6 +602,165 @@ function showResourceMapError() {
     elements.resourceMap.innerHTML = '<div class="chart-empty">Renewable resource map data is unavailable.</div>';
 }
 
+function stateMapMetric(row) {
+    const technology = state.resourceMetric;
+    const resource = row.resource[technology];
+    const opportunity = row.opportunity[technology];
+    if (state.mapMode === "resource") {
+        const definition = state.resources.metric_definitions[technology];
+        return {value: resource.value, unit: definition.unit, decimals: 2, rank: resource.rank,
+            detail: `Resource rank #${resource.rank} of 50 · ${resource.percentile}th percentile`};
+    }
+    if (state.mapMode === "deployment") {
+        const share = Number(row.current[`${technology}_share_pct`]) || 0;
+        return {value: share, unit: "% generation", decimals: 1, rank: opportunity.deployment_rank,
+            detail: `${technology[0].toUpperCase() + technology.slice(1)} supplies ${share.toFixed(1)}% of generation · P${opportunity.deployment_percentile} deployment`};
+    }
+    return {value: opportunity.score, unit: "points", decimals: 0, rank: opportunity.rank,
+        detail: `Opportunity rank #${opportunity.rank} of 50 · resource P${opportunity.resource_percentile} vs. deployment P${opportunity.deployment_percentile}`};
+}
+
+function updateStateDetail() {
+    const row = state.resources?.states.find((candidate) => candidate.postal_code === state.selectedState);
+    if (!row) return;
+    const metric = stateMapMetric(row);
+    elements.resourceStateName.textContent = `${row.name} (${row.postal_code})`;
+    elements.resourceStateValue.textContent = Number(metric.value).toFixed(metric.decimals);
+    elements.resourceStateUnit.textContent = metric.unit;
+    elements.resourceStateRank.textContent = metric.detail;
+    elements.stateSelect.value = row.postal_code;
+}
+
+function renderStateResourceMap() {
+    const artifact = state.resources;
+    if (!artifact || !state.mapTopology || typeof chartLibrary.mapChart !== "function") return;
+    destroyChart("resource", elements.resourceMap);
+    const technology = state.resourceMetric;
+    const theme = chartTheme();
+    const values = artifact.states.map((row) => stateMapMetric(row).value);
+    const opportunityMode = state.mapMode === "opportunity";
+    const isSolar = technology === "solar";
+    elements.resourceCard.dataset.resource = technology;
+    elements.resourceSubtitle.textContent = `${technology[0].toUpperCase() + technology.slice(1)} ${state.mapMode} by state · ${artifact.comparison_year}`;
+    elements.resourceMethod.textContent = `${artifact.source.nasa}; ${String(artifact.source.resource_method).toLowerCase()}.`;
+    elements.resourceSwitcher.querySelectorAll("button[data-resource]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.resource === technology)));
+    elements.mapModeSwitcher.querySelectorAll("button[data-map-mode]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.mapMode === state.mapMode)));
+    state.charts.resource = chartLibrary.mapChart(elements.resourceMap, {
+        chart: {animation: false, backgroundColor: "transparent", map: state.mapTopology, spacing: [8, 8, 8, 8], style: {fontFamily: getComputedStyle(document.body).fontFamily}},
+        accessibility: {description: `Interactive U.S. map of state ${technology} ${state.mapMode}.`},
+        colorAxis: {
+            min: Math.min(...values), max: Math.max(...values),
+            stops: opportunityMode
+                ? [[0, "#6b395f"], [0.5, "#e9eceb"], [1, "#36b6a8"]]
+                : isSolar ? [[0, "#f2e9d0"], [0.42, "#f5bd4f"], [0.72, "#e45b32"], [1, "#812f78"]]
+                    : [[0, "#dcebea"], [0.4, "#70c5c2"], [0.72, "#238da8"], [1, "#31568e"]],
+            labels: {format: state.mapMode === "deployment" ? "{value:.0f}%" : "{value:.1f}", style: {color: theme.textFaint, fontSize: "10px"}},
+        },
+        credits: {enabled: false},
+        legend: {align: "center", layout: "horizontal", symbolHeight: 10, symbolWidth: 260, verticalAlign: "bottom", itemStyle: {color: theme.textSoft, fontSize: "11px"}},
+        mapNavigation: {enabled: true, enableMouseWheelZoom: true, buttonOptions: {align: "left", verticalAlign: "bottom", theme: {fill: theme.background, stroke: theme.border, "stroke-width": 1, r: 7, style: {color: theme.text}}}},
+        title: {text: null},
+        tooltip: {useHTML: true, outside: true, formatter() { const custom = this.point.options.custom; const metric = custom.metric; return `<div class="chart-tooltip-content"><strong class="chart-tooltip-heading">${custom.name}</strong><div class="chart-tooltip-row"><span>${state.mapMode}</span><strong>${Number(metric.value).toFixed(metric.decimals)} ${metric.unit}</strong></div><div class="chart-tooltip-row"><span>National rank</span><strong>#${metric.rank} of 50</strong></div></div>`; }},
+        plotOptions: {map: {borderColor: theme.background, borderWidth: 1, cursor: "pointer", nullColor: cssValue("--surface-muted"), states: {hover: {borderColor: theme.text, borderWidth: 1.5, brightness: 0.08}, select: {borderColor: theme.text, borderWidth: 2, color: undefined}}}},
+        series: [{
+            allAreas: false, joinBy: "hc-key", name: `${technology} ${state.mapMode}`, allowPointSelect: true,
+            data: artifact.states.map((row) => ({"hc-key": row.hc_key, value: stateMapMetric(row).value, custom: {name: row.name, postalCode: row.postal_code, metric: stateMapMetric(row)}, selected: row.postal_code === state.selectedState})),
+            point: {events: {click() { selectExplorerState(this.options.custom.postalCode); }}},
+        }],
+    });
+    updateStateDetail();
+}
+
+function renderOpportunityChart() {
+    if (!state.resources) return;
+    destroyChart("opportunity", elements.opportunityChart);
+    const theme = chartTheme();
+    const technology = state.resourceMetric;
+    state.charts.opportunity = chartLibrary.chart(elements.opportunityChart, {
+        chart: {type: "scatter", backgroundColor: "transparent", animation: false, spacing: [8, 8, 8, 8], style: {fontFamily: getComputedStyle(document.body).fontFamily}},
+        accessibility: {description: `${technology} resource percentile versus deployment percentile for all states.`},
+        credits: {enabled: false}, legend: {enabled: false}, title: {text: null},
+        xAxis: {min: 0, max: 100, title: {text: "Resource percentile", style: {color: theme.textSoft}}, labels: {style: {color: theme.textFaint}}, gridLineWidth: 1, gridLineColor: theme.grid, plotLines: [{value: 50, color: theme.border, width: 1, dashStyle: "Dash"}]},
+        yAxis: {min: 0, max: 100, title: {text: "Deployment percentile", style: {color: theme.textSoft}}, labels: {style: {color: theme.textFaint}}, gridLineColor: theme.grid, plotLines: [{value: 50, color: theme.border, width: 1, dashStyle: "Dash"}], plotBands: [{from: 0, to: 50, color: "rgba(54,182,168,0.08)"}]},
+        tooltip: {useHTML: true, outside: true, formatter() { const custom = this.point.options.custom; return `<div class="chart-tooltip-content"><strong class="chart-tooltip-heading">${custom.name}</strong><div class="chart-tooltip-row"><span>Resource percentile</span><strong>${this.x}</strong></div><div class="chart-tooltip-row"><span>Deployment percentile</span><strong>${this.y}</strong></div><div class="chart-tooltip-row"><span>Opportunity score</span><strong>${custom.score > 0 ? "+" : ""}${custom.score}</strong></div></div>`; }},
+        plotOptions: {scatter: {cursor: "pointer", marker: {radius: 5, lineWidth: 1, lineColor: theme.background}, point: {events: {click() { selectExplorerState(this.options.custom.postalCode); }}}}},
+        series: [{color: technology === "solar" ? "#e45b32" : "#238da8", data: state.resources.states.map((row) => ({
+            x: row.opportunity[technology].resource_percentile, y: row.opportunity[technology].deployment_percentile,
+            marker: {radius: row.postal_code === state.selectedState ? 9 : 5, lineWidth: row.postal_code === state.selectedState ? 3 : 1},
+            custom: {name: `${row.name} (${row.postal_code})`, postalCode: row.postal_code, score: row.opportunity[technology].score},
+        }))}],
+    });
+}
+
+function renderStateProfile() {
+    const row = state.resources?.states.find((candidate) => candidate.postal_code === state.selectedState);
+    if (!row) return;
+    elements.stateSelect.value = row.postal_code;
+    elements.stateRenewableShare.textContent = `${Number(row.current.renewable_share_pct).toFixed(1)}%`;
+    const growth = row.growth.renewable_cagr_pct;
+    elements.stateRenewableGrowth.textContent = growth == null ? "n/a" : `${growth > 0 ? "+" : ""}${Number(growth).toFixed(1)}% CAGR`;
+    elements.stateCarbon.textContent = row.current.carbon_intensity_lbs_mwh == null ? "n/a" : `${formatInteger(row.current.carbon_intensity_lbs_mwh)} lbs/MWh`;
+    destroyChart("stateTrend", elements.stateTrendChart);
+    const theme = chartTheme();
+    state.charts.stateTrend = chartLibrary.chart(elements.stateTrendChart, {
+        chart: {type: "line", backgroundColor: "transparent", height: 220, spacing: [8, 8, 4, 8], style: {fontFamily: getComputedStyle(document.body).fontFamily}},
+        credits: {enabled: false}, title: {text: null},
+        xAxis: {categories: row.history.map((item) => String(item.year)), labels: {style: {color: theme.textFaint}}, lineColor: theme.border},
+        yAxis: {min: 0, title: {text: "Share of generation", style: {color: theme.textSoft}}, labels: {format: "{value}%", style: {color: theme.textFaint}}, gridLineColor: theme.grid},
+        legend: {itemStyle: {color: theme.textSoft, fontSize: "11px"}}, tooltip: {shared: true, valueSuffix: "%"},
+        series: [
+            {name: "Renewables", color: "#36b6a8", data: row.history.map((item) => item.renewable_share_pct)},
+            {name: "Solar", color: "#e45b32", data: row.history.map((item) => item.solar_share_pct)},
+            {name: "Wind", color: "#238da8", data: row.history.map((item) => item.wind_share_pct)},
+        ],
+    });
+    const mixRows = row.current.generation_mix.filter((fuel) => fuel.share_pct >= 1).sort((a, b) => b.share_pct - a.share_pct);
+    elements.stateMix.innerHTML = `<h3>${row.current.year} generation mix</h3><div class="state-mix-bar">${mixRows.map((fuel) => `<span style="width:${fuel.share_pct}%;background:${fuelColor(fuel.id)}" title="${fuel.label}: ${fuel.share_pct}%"></span>`).join("")}</div><div class="state-mix-legend">${mixRows.map((fuel) => `<span><i style="background:${fuelColor(fuel.id)}"></i>${fuel.label} <strong>${fuel.share_pct.toFixed(1)}%</strong></span>`).join("")}</div>`;
+}
+
+function renderOpportunityTable() {
+    if (!state.resources) return;
+    const technology = state.resourceMetric;
+    const rows = [...state.resources.states].sort((a, b) => a.opportunity[technology].rank - b.opportunity[technology].rank).slice(0, 10);
+    elements.opportunityTableBody.innerHTML = rows.map((row) => {
+        const opportunity = row.opportunity[technology];
+        const growth = row.growth.renewable_cagr_pct;
+        return `<tr data-state="${row.postal_code}" tabindex="0" class="${row.postal_code === state.selectedState ? "is-selected" : ""}"><td>#${opportunity.rank}</td><th>${row.name} <span>${row.postal_code}</span></th><td>P${opportunity.resource_percentile}</td><td>${Number(row.current[`${technology}_share_pct`]).toFixed(1)}% <small>P${opportunity.deployment_percentile}</small></td><td><strong>${opportunity.score > 0 ? "+" : ""}${opportunity.score}</strong></td><td>${growth == null ? "n/a" : `${growth > 0 ? "+" : ""}${growth.toFixed(1)}%`}</td><td>${row.current.carbon_intensity_lbs_mwh == null ? "n/a" : `${formatInteger(row.current.carbon_intensity_lbs_mwh)} lbs/MWh`}</td></tr>`;
+    }).join("");
+}
+
+function selectExplorerState(postalCode) {
+    state.selectedState = postalCode;
+    renderStateExplorer();
+}
+
+function renderStateExplorer() {
+    renderStateResourceMap();
+    renderOpportunityChart();
+    renderStateProfile();
+    renderOpportunityTable();
+}
+
+async function loadStateExplorer(force = false) {
+    if (force || !state.resources) {
+        state.resources = await fetchJson(`${DATA_ROOT}/state-energy.json`, force ? String(Date.now()) : "");
+        if (!state.selectedState) {
+            state.selectedState = [...state.resources.states].sort((a, b) => a.opportunity.solar.rank - b.opportunity.solar.rank)[0]?.postal_code || "CA";
+        }
+        elements.stateSelect.innerHTML = state.resources.states.map((row) => `<option value="${row.postal_code}">${row.name} (${row.postal_code})</option>`).join("");
+    }
+    if (!state.mapTopology) state.mapTopology = await fetchJson(US_MAP_URL);
+    renderStateExplorer();
+}
+
+function showStateExplorerError() {
+    destroyChart("resource", elements.resourceMap);
+    destroyChart("opportunity", elements.opportunityChart);
+    destroyChart("stateTrend", elements.stateTrendChart);
+    elements.resourceMap.innerHTML = '<div class="chart-empty">State explorer data is unavailable.</div>';
+    elements.opportunityChart.innerHTML = '<div class="chart-empty">Opportunity data is unavailable.</div>';
+}
+
 function updatePipelineHealth(manifest, snapshot) {
     const pipeline = manifest.pipeline;
     const status = pipeline.status;
@@ -723,9 +892,9 @@ async function loadDashboard(force = false) {
             state.snapshots.clear();
             chooseInitialState();
         }
-        const resourcePromise = loadResourceMap(force).catch((error) => {
-            console.error("Resource map could not be loaded.", error);
-            showResourceMapError();
+        const resourcePromise = loadStateExplorer(force).catch((error) => {
+            console.error("State explorer could not be loaded.", error);
+            showStateExplorerError();
         });
         const snapshot = await loadRegion(state.region, force);
         render(snapshot);
@@ -777,7 +946,30 @@ elements.resourceSwitcher.addEventListener("click", (event) => {
         return;
     }
     state.resourceMetric = button.dataset.resource;
-    renderResourceMap();
+    renderStateExplorer();
+});
+
+elements.mapModeSwitcher.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-map-mode]");
+    if (!button || button.dataset.mapMode === state.mapMode) return;
+    state.mapMode = button.dataset.mapMode;
+    renderStateResourceMap();
+});
+
+elements.stateSelect.addEventListener("change", (event) => selectExplorerState(event.target.value));
+
+elements.opportunityTableBody.addEventListener("click", (event) => {
+    const row = event.target.closest("tr[data-state]");
+    if (row) selectExplorerState(row.dataset.state);
+});
+
+elements.opportunityTableBody.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const row = event.target.closest("tr[data-state]");
+    if (row) {
+        event.preventDefault();
+        selectExplorerState(row.dataset.state);
+    }
 });
 
 elements.refreshButton.addEventListener("click", () => loadDashboard(true));

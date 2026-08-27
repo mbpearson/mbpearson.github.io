@@ -622,6 +622,61 @@ figcaption { margin-top: 0.75rem; color: var(--text-faint); font-size: 0.72rem; 
 .resource-method { margin: 0; color: var(--text-faint); font-size: 0.72rem; line-height: 1.5; }
 .resource-map .highcharts-map-navigation { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12)); }
 
+.state-explorer {
+    display: grid;
+    gap: 1rem;
+    margin-top: clamp(2rem, 5vw, 4rem);
+    scroll-margin-top: 90px;
+}
+.state-explorer-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: clamp(0.5rem, 2vw, 1.2rem) 0;
+}
+.state-explorer-heading h2 { margin: 0.2rem 0 0.5rem; font-size: clamp(1.8rem, 4vw, 3.1rem); letter-spacing: -0.045em; }
+.state-explorer-heading p:last-child { max-width: 760px; margin: 0; color: var(--text-soft); line-height: 1.65; }
+.state-explorer-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(360px, 0.8fr); gap: 1rem; }
+.opportunity-chart { height: 440px; min-height: 440px; }
+.state-profile-card { display: flex; flex-direction: column; }
+.state-profile-header { align-items: end; }
+.state-select-label { display: grid; gap: 0.35rem; color: var(--text-faint); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.state-select-label select {
+    min-width: 190px;
+    padding: 0.65rem 2rem 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    color: var(--text);
+    background: var(--surface-solid);
+    font: inherit;
+    font-size: 0.78rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+.state-profile-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin: 1.25rem 0 0.5rem; }
+.state-profile-kpis div { display: grid; gap: 0.25rem; padding: 0.8rem; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-muted); }
+.state-profile-kpis span { color: var(--text-faint); font-size: 0.68rem; }
+.state-profile-kpis strong { font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+.state-trend-chart { height: 220px; min-height: 220px; }
+.state-mix { margin-top: 0.5rem; }
+.state-mix h3 { margin: 0 0 0.65rem; font-size: 0.8rem; }
+.state-mix-bar { height: 13px; display: flex; overflow: hidden; border-radius: 999px; background: var(--surface-muted); }
+.state-mix-bar span { min-width: 2px; }
+.state-mix-legend { display: flex; flex-wrap: wrap; gap: 0.45rem 0.85rem; margin-top: 0.7rem; }
+.state-mix-legend span { display: inline-flex; align-items: center; gap: 0.3rem; color: var(--text-soft); font-size: 0.67rem; }
+.state-mix-legend i { width: 7px; height: 7px; border-radius: 2px; }
+.state-mix-legend strong { color: var(--text); }
+.profile-source, .table-source { margin-top: auto; padding-top: 1rem; text-align: right; }
+.table-scroll { overflow-x: auto; }
+.opportunity-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.opportunity-table th, .opportunity-table td { padding: 0.8rem 0.7rem; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.opportunity-table thead th { color: var(--text-faint); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.opportunity-table th:nth-child(2), .opportunity-table td:nth-child(2) { text-align: left; }
+.opportunity-table tbody tr { cursor: pointer; transition: background 150ms ease; }
+.opportunity-table tbody tr:hover, .opportunity-table tbody tr:focus, .opportunity-table tbody tr.is-selected { outline: none; background: var(--accent-soft); }
+.opportunity-table tbody th span, .opportunity-table tbody td small { color: var(--text-faint); font-size: 0.68rem; font-weight: 500; }
+
 .flow-card { scroll-margin-top: 90px; }
 
 .flow-steps {
@@ -759,6 +814,7 @@ figcaption { margin-top: 0.75rem; color: var(--text-faint); font-size: 0.72rem; 
     .operations-strip article:nth-child(2) { border-right: 0; }
     .operations-strip article:nth-child(n+3) { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
     .resource-map-layout { grid-template-columns: minmax(0, 1fr) 220px; }
+    .state-explorer-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -801,6 +857,11 @@ figcaption { margin-top: 0.75rem; color: var(--text-faint); font-size: 0.72rem; 
     .resource-map-layout { grid-template-columns: 1fr; }
     .resource-map { height: 430px; min-height: 430px; }
     .resource-detail { min-height: 0; align-self: stretch; }
+    .state-explorer-heading { align-items: stretch; flex-direction: column; gap: 1rem; }
+    .state-profile-kpis { grid-template-columns: 1fr; }
+    .state-profile-header { align-items: stretch; }
+    .state-select-label select { width: 100%; }
+    .opportunity-chart { height: 360px; min-height: 360px; }
     .flow-steps { grid-template-columns: 1fr; gap: 1.4rem; }
     .flow-steps li { grid-template-columns: 46px 1fr; justify-items: start; align-items: center; padding: 0; text-align: left; }
     .flow-steps li:not(:last-child)::after { top: 48px; right: auto; bottom: -22px; left: 23px; width: 1px; height: 22px; }

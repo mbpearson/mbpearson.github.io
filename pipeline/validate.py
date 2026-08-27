@@ -176,6 +176,88 @@ def validate_resource_map(
     return ValidationReport("U.S. renewable resource map", _iso(checked), tuple(checks))
 
 
+def validate_state_energy(
+    artifact: Any, *, now: datetime | None = None
+) -> ValidationReport:
+    """Validate the joined EIA + NASA state explorer artifact."""
+    checked = _utc_now(now)
+    checks: list[ValidationCheck] = []
+    if not isinstance(artifact, Mapping):
+        return ValidationReport(
+            "State energy explorer", _iso(checked),
+            (ValidationCheck("state_energy_structure", "failed", "Artifact is not an object."),),
+        )
+    states = artifact.get("states")
+    structural = []
+    if artifact.get("schema_version") != 1:
+        structural.append("schema_version must equal 1")
+    if not isinstance(artifact.get("comparison_year"), int):
+        structural.append("comparison_year must be an integer")
+    if not isinstance(states, list):
+        structural.append("states must be a list")
+    checks.append(ValidationCheck(
+        "state_energy_structure", "failed" if structural else "passed",
+        "; ".join(structural) if structural else "State explorer schema is present.",
+    ))
+    if structural or not isinstance(states, list):
+        return ValidationReport("State energy explorer", _iso(checked), tuple(checks))
+
+    errors: list[str] = []
+    warnings: list[str] = []
+    postals: list[str] = []
+    for index, row in enumerate(states):
+        if not isinstance(row, Mapping):
+            errors.append(f"state {index} is not an object")
+            continue
+        postal = row.get("postal_code")
+        if not isinstance(postal, str) or len(postal) != 2:
+            errors.append(f"state {index}.postal_code is invalid")
+        else:
+            postals.append(postal)
+        current = row.get("current")
+        resource = row.get("resource")
+        opportunity = row.get("opportunity")
+        history = row.get("history")
+        if not isinstance(current, Mapping) or not isinstance(resource, Mapping) or not isinstance(opportunity, Mapping):
+            errors.append(f"{postal or index} is missing current, resource, or opportunity metrics")
+            continue
+        if not isinstance(history, list) or len(history) < 2:
+            errors.append(f"{postal or index}.history is incomplete")
+        mix = current.get("generation_mix")
+        if not isinstance(mix, list) or not mix:
+            errors.append(f"{postal or index}.generation_mix is missing")
+        else:
+            share = sum(float(item.get("share_pct", 0)) for item in mix if isinstance(item, Mapping))
+            if not isclose(share, 100, abs_tol=0.2) and current.get("total_generation_mwh", 0) > 0:
+                errors.append(f"{postal or index}.generation_mix does not total 100%")
+        for metric in ("solar", "wind"):
+            metric_resource = resource.get(metric)
+            metric_opportunity = opportunity.get(metric)
+            if not isinstance(metric_resource, Mapping) or not _is_number(metric_resource.get("value")):
+                errors.append(f"{postal or index}.{metric} resource is invalid")
+            if not isinstance(metric_opportunity, Mapping) or not _is_number(metric_opportunity.get("score")):
+                errors.append(f"{postal or index}.{metric} opportunity is invalid")
+            elif not -100 <= metric_opportunity["score"] <= 100:
+                errors.append(f"{postal or index}.{metric} opportunity is out of range")
+        if current.get("carbon_intensity_lbs_mwh") is None:
+            warnings.append(f"{postal or index} has no carbon intensity")
+    if len(states) != 50:
+        errors.append(f"expected 50 states; received {len(states)}")
+    if len(postals) != len(set(postals)):
+        errors.append("state identifiers must be unique")
+    checks.append(ValidationCheck(
+        "state_metrics", "failed" if errors else "passed",
+        "; ".join(errors[:10]) if errors else "Validated generation, growth, resources, and opportunity for 50 states.",
+        {"states": len(states), "errors": len(errors)},
+    ))
+    checks.append(ValidationCheck(
+        "state_carbon_coverage", "warning" if warnings else "passed",
+        "; ".join(warnings[:5]) if warnings else "Carbon intensity is present for every state.",
+        {"missing": len(warnings)},
+    ))
+    return ValidationReport("State energy explorer", _iso(checked), tuple(checks))
+
+
 def _utc_now(now: datetime | None) -> datetime:
     value = now or datetime.now(timezone.utc)
     if value.tzinfo is None:

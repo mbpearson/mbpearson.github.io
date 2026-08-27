@@ -39,6 +39,7 @@
 
             <nav class="header-nav" aria-label="Grid Pulse navigation">
                 <a href="#dashboard">Dashboard</a>
+                <a href="#state-explorer">State explorer</a>
                 <a href="#data-flow">Data flow</a>
                 <a href="../index.html#experience">Portfolio</a>
                 <button id="theme-toggle" class="icon-button theme-toggle" type="button"
@@ -183,18 +184,35 @@
             </figure>
         </section>
 
+        <section id="state-explorer" class="state-explorer" aria-labelledby="state-explorer-title">
+            <div class="state-explorer-heading">
+                <div>
+                    <p class="eyebrow">EIA + NASA POWER</p>
+                    <h2 id="state-explorer-title">U.S. clean energy explorer</h2>
+                    <p>Compare renewable resources with real-world deployment, growth, generation mix, and operational carbon intensity.</p>
+                </div>
+                <div class="control-group resource-control-group">
+                    <span class="control-label">Technology</span>
+                    <div id="resource-switcher" class="segmented-control" role="group" aria-label="Renewable technology">
+                        <button type="button" data-resource="solar" aria-pressed="true">Solar</button>
+                        <button type="button" data-resource="wind" aria-pressed="false">Wind</button>
+                    </div>
+                </div>
+            </div>
+
         <section class="dashboard-card resource-map-card" aria-labelledby="resource-map-title">
             <div class="card-header resource-map-header">
                 <div>
-                    <p class="eyebrow">Renewable potential</p>
-                    <h2 id="resource-map-title">U.S. solar and wind resources</h2>
-                    <p id="resource-map-subtitle" class="card-subtitle">Long-term average solar resource by state</p>
+                    <p class="eyebrow">State comparison</p>
+                    <h2 id="resource-map-title">Renewable opportunity map</h2>
+                    <p id="resource-map-subtitle" class="card-subtitle">Solar resource opportunity by state</p>
                 </div>
                 <div class="control-group resource-control-group">
-                    <span class="control-label">Resource</span>
-                    <div id="resource-switcher" class="segmented-control" role="group" aria-label="Map resource">
-                        <button type="button" data-resource="solar" aria-pressed="true">Solar</button>
-                        <button type="button" data-resource="wind" aria-pressed="false">Wind</button>
+                    <span class="control-label">Map layer</span>
+                    <div id="map-mode-switcher" class="segmented-control" role="group" aria-label="Map layer">
+                        <button type="button" data-map-mode="opportunity" aria-pressed="true">Opportunity</button>
+                        <button type="button" data-map-mode="resource" aria-pressed="false">Resource</button>
+                        <button type="button" data-map-mode="deployment" aria-pressed="false">Deployment</button>
                     </div>
                 </div>
             </div>
@@ -202,7 +220,7 @@
                 <figure>
                     <div id="resource-map" class="chart-surface resource-map" aria-live="polite"></div>
                     <figcaption class="chart-caption">
-                        <span>Hover over a state for its value and national rank. Use the map controls or scroll to zoom.</span>
+                        <span>Opportunity is resource percentile minus deployment percentile. Higher scores flag strong resources with relatively low deployment.</span>
                     </figcaption>
                 </figure>
                 <div class="card-spacer-column-fill">
@@ -217,6 +235,54 @@
                     <span class="card-source chart-source">Sources: <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER <span aria-hidden="true">↗</span></a> <span aria-hidden="true">·</span> <a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.html" target="_blank" rel="noopener noreferrer">U.S. Census Bureau <span aria-hidden="true">↗</span></a></span>
                     </div>
             </div>
+        </section>
+
+        <div class="state-explorer-grid">
+            <section class="dashboard-card opportunity-card" aria-labelledby="opportunity-title">
+                <div class="card-header">
+                    <div>
+                        <p class="eyebrow">Resource vs. deployment</p>
+                        <h2 id="opportunity-title">Opportunity landscape</h2>
+                        <p class="card-subtitle">The lower-right opportunity zone combines above-median resource with below-median deployment.</p>
+                    </div>
+                </div>
+                <figure>
+                    <div id="opportunity-chart" class="chart-surface opportunity-chart" aria-live="polite"></div>
+                    <figcaption class="chart-caption">
+                        <span>Select a point to update the state profile.</span>
+                        <span class="card-source chart-source">Sources: <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener noreferrer">U.S. EIA <span aria-hidden="true">↗</span></a> <span aria-hidden="true">·</span> <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER <span aria-hidden="true">↗</span></a></span>
+                    </figcaption>
+                </figure>
+            </section>
+
+            <section class="dashboard-card state-profile-card" aria-labelledby="state-profile-title">
+                <div class="card-header state-profile-header">
+                    <div><p class="eyebrow">Selected state</p><h2 id="state-profile-title">State energy profile</h2></div>
+                    <label class="state-select-label">State<select id="state-select" aria-label="Select a state"></select></label>
+                </div>
+                <div class="state-profile-kpis">
+                    <div><span>Renewable share</span><strong id="state-renewable-share">—</strong></div>
+                    <div><span>Renewable growth</span><strong id="state-renewable-growth">—</strong></div>
+                    <div><span>Carbon intensity</span><strong id="state-carbon">—</strong></div>
+                </div>
+                <div id="state-trend-chart" class="chart-surface state-trend-chart" aria-live="polite"></div>
+                <div id="state-mix" class="state-mix" aria-label="Generation mix"></div>
+                <p class="card-source profile-source">Source: <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener noreferrer">U.S. EIA annual state electricity data <span aria-hidden="true">↗</span></a></p>
+            </section>
+        </div>
+
+        <section class="dashboard-card opportunity-table-card" aria-labelledby="opportunity-table-title">
+            <div class="card-header"><div>
+                <p class="eyebrow">Where potential outpaces adoption</p>
+                <h2 id="opportunity-table-title">Leading opportunities</h2>
+                <p class="card-subtitle">States ranked by the gap between resource and deployment percentiles.</p>
+            </div></div>
+            <div class="table-scroll"><table class="opportunity-table">
+                <thead><tr><th>Rank</th><th>State</th><th>Resource</th><th>Deployment</th><th>Opportunity</th><th>Renewable growth</th><th>Carbon intensity</th></tr></thead>
+                <tbody id="opportunity-table-body"></tbody>
+            </table></div>
+            <p class="card-source table-source">Sources: <a href="https://www.eia.gov/opendata/" target="_blank" rel="noopener noreferrer">U.S. EIA <span aria-hidden="true">↗</span></a> <span aria-hidden="true">·</span> <a href="https://power.larc.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA POWER <span aria-hidden="true">↗</span></a></p>
+        </section>
         </section>
 
         <section id="data-flow" class="dashboard-card flow-card" aria-labelledby="flow-title">
